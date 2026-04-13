@@ -60,14 +60,14 @@ describe("fromZodSchema", () => {
     const optThenDef = z.object({
       b: z.string().optional().default("x"),
     });
-    const Cases = [fromZodSchema(defThenOpt, "DO"), fromZodSchema(optThenDef, "OD")];
-    const rebuilt = Cases.map((C) => toZodSchema(C));
-    expectEquivalentObjectParse(defThenOpt, rebuilt[0]!, [
+    const rebuiltDO = toZodSchema(fromZodSchema(defThenOpt, "DO"));
+    const rebuiltOD = toZodSchema(fromZodSchema(optThenDef, "OD"));
+    expectEquivalentObjectParse(defThenOpt, rebuiltDO, [
       {},
       { a: undefined },
       { a: "y" },
     ]);
-    expectEquivalentObjectParse(optThenDef, rebuilt[1]!, [
+    expectEquivalentObjectParse(optThenDef, rebuiltOD, [
       {},
       { b: undefined },
       { b: "y" },
@@ -193,7 +193,7 @@ describe("fromZodSchema", () => {
 
     class Extended extends Base {
       @IsNullable()
-      a!: string | undefined | null;
+      a?: string;
     }
 
     const rebuilt = toZodSchema(Extended);
