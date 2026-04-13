@@ -25,16 +25,13 @@ function applyFieldMeta(field: FieldMeta): z.ZodTypeAny {
   }
   // Decorator / merge flags (e.g. subclass adds @IsNullable on a fromZodSchema field): apply after
   // wrapperChain so merged modifiers are not ignored. Skip if the outer layer already matches.
-  if (field.isOptional && (schema._def as { typeName?: string }).typeName !== "ZodOptional") {
+  if (field.isOptional && !(schema instanceof z.ZodOptional)) {
     schema = schema.optional();
   }
-  if (field.isNullable && (schema._def as { typeName?: string }).typeName !== "ZodNullable") {
+  if (field.isNullable && !(schema instanceof z.ZodNullable)) {
     schema = schema.nullable();
   }
-  if (
-    field.defaultValue !== undefined &&
-    (schema._def as { typeName?: string }).typeName !== "ZodDefault"
-  ) {
+  if (field.defaultValue !== undefined && !(schema instanceof z.ZodDefault)) {
     schema = schema.default(field.defaultValue as never);
   }
   return schema;
@@ -53,10 +50,7 @@ function finalizeObjectSchema(
     } else if (meta.unknownKeys === "passthrough") {
       obj = obj.passthrough();
     }
-    if (
-      meta.catchall != null &&
-      meta.catchall._def?.typeName !== "ZodNever"
-    ) {
+    if (meta.catchall != null && !(meta.catchall instanceof z.ZodNever)) {
       obj = obj.catchall(meta.catchall);
     }
   }

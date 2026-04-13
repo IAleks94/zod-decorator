@@ -15,15 +15,14 @@ function unwrapFieldSchema(fieldSchema: z.ZodTypeAny): {
   const wrapperChain: FieldWrapperStep[] = [];
 
   while (true) {
-    const t = current._def.typeName as string;
-    if (t === "ZodOptional") {
+    if (current instanceof z.ZodOptional) {
       wrapperChain.push({ kind: "optional" });
-      current = (current as z.ZodOptional<z.ZodTypeAny>).unwrap();
-    } else if (t === "ZodNullable") {
+      current = current.unwrap();
+    } else if (current instanceof z.ZodNullable) {
       wrapperChain.push({ kind: "nullable" });
-      current = (current as z.ZodNullable<z.ZodTypeAny>).unwrap();
-    } else if (t === "ZodDefault") {
-      const zDef = current as z.ZodDefault<z.ZodTypeAny>;
+      current = current.unwrap();
+    } else if (current instanceof z.ZodDefault) {
+      const zDef = current;
       wrapperChain.push({ kind: "default", factory: zDef._def.defaultValue });
       current = zDef.removeDefault();
     } else {
@@ -65,7 +64,7 @@ export function fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(
     const fieldSchema = shape[key]!;
     const { inner, wrapperChain } = unwrapFieldSchema(fieldSchema);
 
-    if (inner._def.typeName === "ZodObject") {
+    if (inner instanceof z.ZodObject) {
       const nestedName = `${toSafeClassName(key)}Nested`;
       const NestedCls = fromZodSchema(
         inner as z.ZodObject<z.ZodRawShape>,

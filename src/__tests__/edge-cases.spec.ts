@@ -72,6 +72,18 @@ describe("edge cases", () => {
     expect(() => schema.parse({ s: "bad" })).toThrow();
   });
 
+  it("type decorator above refine still applies refine (TS runs refine before type)", () => {
+    class C {
+      @IsNumber()
+      @Refine((v: unknown) => typeof v === "number" && (v as number) > 0)
+      x!: number;
+    }
+
+    const schema = toZodSchema(C);
+    expect(schema.parse({ x: 1 })).toEqual({ x: 1 });
+    expect(() => schema.parse({ x: 0 })).toThrow();
+  });
+
   it("empty class produces z.object({})", () => {
     class Empty {}
 

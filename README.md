@@ -1,6 +1,6 @@
 # zod-decorator
 
-[![npm version](https://img.shields.io/npm/v/zod-decorator.svg)](https://www.npmjs.com/package/zod-decorator)
+[![npm version](https://img.shields.io/npm/v/@ialeks/zod-decorator.svg)](https://www.npmjs.com/package/@ialeks/zod-decorator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 
@@ -9,15 +9,15 @@ TypeScript decorators for **Zod** schema validation. If you like the **class-val
 ## Installation
 
 ```bash
-pnpm add zod-decorator zod reflect-metadata
+pnpm add @ialeks/zod-decorator zod reflect-metadata
 ```
 
 ```bash
-npm install zod-decorator zod reflect-metadata
+npm install @ialeks/zod-decorator zod reflect-metadata
 ```
 
 ```bash
-yarn add zod-decorator zod reflect-metadata
+yarn add @ialeks/zod-decorator zod reflect-metadata
 ```
 
 Enable decorators in `tsconfig.json` (`experimentalDecorators` / `emitDecoratorMetadata` as required by your setup). Import `reflect-metadata` once at app entry (e.g. `import "reflect-metadata"`). **Zod** is a peer dependency: keep a single `zod` install in your app (see `peerDependencies` in this package).
@@ -28,7 +28,7 @@ The package is **ESM** (`"type": "module"`). Use `import` syntax in Node and bun
 
 ```ts
 import "reflect-metadata";
-import { Schema, IsString, IsNumber, IsOptional, toZodSchema, validate } from "zod-decorator";
+import { Schema, IsString, IsNumber, IsOptional, toZodSchema, validate } from "@ialeks/zod-decorator";
 
 @Schema()
 class UserDto {
@@ -51,7 +51,7 @@ const user = validate(UserDto, { email: "a@b.com", age: 1 });
 
 ```ts
 import { z } from "zod";
-import { fromZodSchema, toZodSchema, validate } from "zod-decorator";
+import { fromZodSchema, toZodSchema, validate } from "@ialeks/zod-decorator";
 
 const UserSchema = z.object({
   id: z.string(),
@@ -132,7 +132,7 @@ class UserDto {
 **zod-decorator** (decorators → Zod schema):
 
 ```ts
-import { Schema, IsString, IsNumber, IsOptional, toZodSchema } from "zod-decorator";
+import { Schema, IsString, IsNumber, IsOptional, toZodSchema } from "@ialeks/zod-decorator";
 
 @Schema()
 class UserDto {

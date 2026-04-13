@@ -21,13 +21,30 @@ describe("registerField", () => {
     expect(x!.isOptional).toBe(true);
   });
 
-  it("replaces refinements and transforms when factory is set again", () => {
+  it("preserves refinements and transforms when factory is set again", () => {
     class A {}
     registerField(A.prototype, "x", { factory: () => z.string() });
     registerField(A.prototype, "x", {
       refinements: [{ check: (v) => typeof v === "string" }],
     });
     registerField(A.prototype, "x", { factory: () => z.number() });
+    const x = getFields(A).find((f) => f.propertyKey === "x")!;
+    expect(x.refinements).toHaveLength(1);
+    expect(x.transforms).toHaveLength(0);
+    expect(x.factory().parse(1)).toBe(1);
+  });
+
+  it("clears refinements when factory is set again with explicit empty refinements", () => {
+    class A {}
+    registerField(A.prototype, "x", { factory: () => z.string() });
+    registerField(A.prototype, "x", {
+      refinements: [{ check: (v) => typeof v === "string" }],
+    });
+    registerField(A.prototype, "x", {
+      factory: () => z.number(),
+      refinements: [],
+      transforms: [],
+    });
     const x = getFields(A).find((f) => f.propertyKey === "x")!;
     expect(x.refinements).toHaveLength(0);
     expect(x.transforms).toHaveLength(0);
