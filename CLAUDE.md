@@ -22,9 +22,7 @@ Order applied to each field’s base schema from `factory()`:
 
 1. `refinements` — `.refine` (sync checks only in the public API)
 2. `transforms` — each function receives the current Zod schema and returns the next schema
-3. `.optional()` if `isOptional`
-4. `.nullable()` if `isNullable`
-5. `.default(value)` if `defaultValue !== undefined` (no distinction for “explicit undefined default”)
+3. Wrappers: if `FieldMeta.wrapperChain` is set (from `fromZodSchema`), reapply each step inner-to-outer (reverse of stored peel order) via `.optional()`, `.nullable()`, or `.default(factory)`. Otherwise the decorator pipeline applies `.optional()` if `isOptional`, `.nullable()` if `isNullable`, `.default(value)` if `defaultValue !== undefined`.
 
 ## `@Nested` and cycles
 

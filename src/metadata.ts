@@ -1,12 +1,24 @@
 import "reflect-metadata";
 import { z } from "zod";
 
+/** Wrapper sequence as unwrapped outer-to-inner by `fromZodSchema`; `toZodSchema` reapplies inner-to-outer (reverse). */
+export type FieldWrapperStep =
+  | { kind: "optional" }
+  | { kind: "nullable" }
+  | { kind: "default"; factory: () => unknown };
+
 export interface FieldMeta {
   propertyKey: string;
   factory: () => z.ZodTypeAny;
   isOptional: boolean;
   isNullable: boolean;
   defaultValue: unknown | undefined;
+  /**
+   * When set (e.g. by `fromZodSchema`), modifiers are applied from the base schema in **reverse** order
+   * so the rebuilt Zod tree matches the original. Decorator-only fields omit this and use
+   * `isOptional` / `isNullable` / `defaultValue` in a fixed pipeline order instead.
+   */
+  wrapperChain?: FieldWrapperStep[];
   transforms: Array<(schema: z.ZodTypeAny) => z.ZodTypeAny>;
   /** Sync predicates only; async checks are not supported (use parseAsync on the raw schema if needed). */
   refinements: Array<{ check: (val: unknown) => boolean; message?: string }>;
@@ -42,6 +54,7 @@ function mergeFieldMeta(existing: FieldMeta, partial: Partial<FieldMeta>): Field
     defaultValue: Object.prototype.hasOwnProperty.call(partial, "defaultValue")
       ? partial.defaultValue
       : existing.defaultValue,
+    wrapperChain: partial.wrapperChain !== undefined ? partial.wrapperChain : existing.wrapperChain,
     transforms: [...existing.transforms, ...(partial.transforms ?? [])],
     refinements: [...existing.refinements, ...(partial.refinements ?? [])],
   };

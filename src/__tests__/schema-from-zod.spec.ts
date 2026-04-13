@@ -53,6 +53,39 @@ describe("fromZodSchema", () => {
     expectEquivalentObjectParse(original, rebuilt, cases);
   });
 
+  it("preserves optional vs default wrapper order on roundtrip", () => {
+    const defThenOpt = z.object({
+      a: z.string().default("x").optional(),
+    });
+    const optThenDef = z.object({
+      b: z.string().optional().default("x"),
+    });
+    const Cases = [fromZodSchema(defThenOpt, "DO"), fromZodSchema(optThenDef, "OD")];
+    const rebuilt = Cases.map((C) => toZodSchema(C));
+    expectEquivalentObjectParse(defThenOpt, rebuilt[0]!, [
+      {},
+      { a: undefined },
+      { a: "y" },
+    ]);
+    expectEquivalentObjectParse(optThenDef, rebuilt[1]!, [
+      {},
+      { b: undefined },
+      { b: "y" },
+    ]);
+  });
+
+  it("preserves dynamic default factories across roundtrip", () => {
+    let n = 0;
+    const original = z.object({
+      id: z.string().default(() => String(++n)),
+    });
+    const Cls = fromZodSchema(original, "DynId");
+    const rebuilt = toZodSchema(Cls);
+    const r1 = rebuilt.parse({});
+    const r2 = rebuilt.parse({});
+    expect(r1.id).not.toBe(r2.id);
+  });
+
   it("unwraps optional, nullable, and default wrappers", () => {
     const original = z.object({
       opt: z.string().optional(),

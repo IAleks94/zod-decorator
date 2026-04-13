@@ -1,36 +1,37 @@
 import "reflect-metadata";
 import { z } from "zod";
-import { registerField, SCHEMA_OBJECT_OPTIONS } from "./metadata.js";
+import {
+  registerField,
+  SCHEMA_OBJECT_OPTIONS,
+  type FieldWrapperStep,
+} from "./metadata.js";
 import { toZodSchema } from "./schema-builder.js";
 
 function unwrapFieldSchema(fieldSchema: z.ZodTypeAny): {
   inner: z.ZodTypeAny;
-  isOptional: boolean;
-  isNullable: boolean;
-  defaultValue: unknown | undefined;
+  wrapperChain: FieldWrapperStep[];
 } {
   let current: z.ZodTypeAny = fieldSchema;
-  let isOptional = false;
-  let isNullable = false;
-  let defaultValue: unknown | undefined = undefined;
+  const wrapperChain: FieldWrapperStep[] = [];
 
   while (true) {
     const t = current._def.typeName as string;
     if (t === "ZodOptional") {
-      isOptional = true;
+      wrapperChain.push({ kind: "optional" });
       current = (current as z.ZodOptional<z.ZodTypeAny>).unwrap();
     } else if (t === "ZodNullable") {
-      isNullable = true;
+      wrapperChain.push({ kind: "nullable" });
       current = (current as z.ZodNullable<z.ZodTypeAny>).unwrap();
     } else if (t === "ZodDefault") {
-      defaultValue = (current as z.ZodDefault<z.ZodTypeAny>)._def.defaultValue();
-      current = (current as z.ZodDefault<z.ZodTypeAny>).removeDefault();
+      const zDef = current as z.ZodDefault<z.ZodTypeAny>;
+      wrapperChain.push({ kind: "default", factory: zDef._def.defaultValue });
+      current = zDef.removeDefault();
     } else {
       break;
     }
   }
 
-  return { inner: current, isOptional, isNullable, defaultValue };
+  return { inner: current, wrapperChain };
 }
 
 function toSafeClassName(name: string): string {
@@ -59,8 +60,7 @@ export function fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(
 
   for (const key of Object.keys(shape)) {
     const fieldSchema = shape[key]!;
-    const { inner, isOptional, isNullable, defaultValue } =
-      unwrapFieldSchema(fieldSchema);
+    const { inner, wrapperChain } = unwrapFieldSchema(fieldSchema);
 
     if (inner._def.typeName === "ZodObject") {
       const nestedName = `${toSafeClassName(key)}Nested`;
@@ -71,18 +71,14 @@ export function fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(
       registerField(Cls.prototype, key, {
         factory: () =>
           z.lazy(() => toZodSchema(NestedCls)) as z.ZodTypeAny,
-        isOptional,
-        isNullable,
-        defaultValue,
+        wrapperChain,
         transforms: [],
         refinements: [],
       });
     } else {
       registerField(Cls.prototype, key, {
         factory: () => inner,
-        isOptional,
-        isNullable,
-        defaultValue,
+        wrapperChain,
         transforms: [],
         refinements: [],
       });

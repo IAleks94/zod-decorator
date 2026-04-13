@@ -10,14 +10,28 @@ function applyFieldMeta(field: FieldMeta): z.ZodTypeAny {
   for (const t of field.transforms) {
     schema = t(schema);
   }
-  if (field.isOptional) {
-    schema = schema.optional();
-  }
-  if (field.isNullable) {
-    schema = schema.nullable();
-  }
-  if (field.defaultValue !== undefined) {
-    schema = schema.default(field.defaultValue);
+  const chain = field.wrapperChain;
+  if (chain !== undefined && chain.length > 0) {
+    for (let i = chain.length - 1; i >= 0; i--) {
+      const step = chain[i]!;
+      if (step.kind === "optional") {
+        schema = schema.optional();
+      } else if (step.kind === "nullable") {
+        schema = schema.nullable();
+      } else {
+        schema = schema.default(step.factory as never);
+      }
+    }
+  } else {
+    if (field.isOptional) {
+      schema = schema.optional();
+    }
+    if (field.isNullable) {
+      schema = schema.nullable();
+    }
+    if (field.defaultValue !== undefined) {
+      schema = schema.default(field.defaultValue as never);
+    }
   }
   return schema;
 }
