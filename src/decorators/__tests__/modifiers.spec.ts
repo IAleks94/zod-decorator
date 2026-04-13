@@ -20,6 +20,7 @@ describe("modifier decorators", () => {
     const schema = toZodSchema(C);
     expect(schema.parse({})).toEqual({});
     expect(schema.parse({ s: "x" })).toEqual({ s: "x" });
+    expect(() => schema.parse({ s: null })).toThrow();
   });
 
   it("@IsOptional() after @IsString() merges correctly", () => {
@@ -75,6 +76,11 @@ describe("modifier decorators", () => {
     expect(schema.parse({ s: "ok" })).toEqual({ s: "ok" });
     const bad = validateSafe(C, { s: "no" });
     expect(bad.success).toBe(false);
+    if (!bad.success) {
+      expect(bad.error.issues.some((i) => i.message.includes("must be ok"))).toBe(
+        true
+      );
+    }
   });
 
   it("composes optional + nullable + default", () => {

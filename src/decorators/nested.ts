@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { z } from "zod";
 import { registerField } from "../metadata.js";
 import { toZodSchema } from "../schema-builder.js";
 
@@ -7,7 +8,8 @@ export function Nested(
 ): PropertyDecorator {
   return (target, propertyKey) => {
     registerField(target, String(propertyKey), {
-      factory: () => toZodSchema(classFn()),
+      factory: () =>
+        z.lazy(() => toZodSchema(classFn())) as z.ZodTypeAny,
     });
   };
 }

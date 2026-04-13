@@ -56,6 +56,70 @@ describe("fromZodSchema", () => {
     ]);
   });
 
+  it("matches validation for simple object (success and failure cases)", () => {
+    const original = z.object({
+      name: z.string(),
+      count: z.number(),
+    });
+    const Cls = fromZodSchema(original, "Simple");
+    const rebuilt = toZodSchema(Cls);
+    expectEquivalentObjectParse(original, rebuilt, [
+      { name: "a", count: 1 },
+      { name: "", count: 0 },
+      { name: "x", count: 2 },
+      {},
+      { name: "a" },
+      { name: 1, count: 1 },
+    ]);
+  });
+
+  it("nested z.object fields preserve inner constraints", () => {
+    const original = z.object({
+      user: z.object({
+        id: z.string().uuid(),
+        tags: z.array(z.string()).min(1),
+      }),
+    });
+    const Cls = fromZodSchema(original, "Outer");
+    const rebuilt = toZodSchema(Cls);
+    const id = "550e8400-e29b-41d4-a716-446655440000";
+    expectEquivalentObjectParse(original, rebuilt, [
+      { user: { id, tags: ["a"] } },
+      { user: { id: "bad", tags: ["a"] } },
+      { user: { id, tags: [] } },
+    ]);
+  });
+
+  it("preserves z.array field schemas", () => {
+    const original = z.object({
+      items: z.array(z.number().int()).max(3),
+    });
+    const Cls = fromZodSchema(original);
+    const rebuilt = toZodSchema(Cls);
+    expectEquivalentObjectParse(original, rebuilt, [
+      { items: [1, 2] },
+      { items: [1, 2, 3, 4] },
+      { items: [1.5] },
+    ]);
+  });
+
+  it("optional nested objects roundtrip", () => {
+    const original = z.object({
+      nested: z
+        .object({
+          x: z.string(),
+        })
+        .optional(),
+    });
+    const Cls = fromZodSchema(original);
+    const rebuilt = toZodSchema(Cls);
+    expectEquivalentObjectParse(original, rebuilt, [
+      {},
+      { nested: { x: "a" } },
+      { nested: { x: 1 } },
+    ]);
+  });
+
   it("nested object roundtrip preserves nested validation", () => {
     const original = z.object({
       user: z.object({
@@ -96,5 +160,13 @@ describe("fromZodSchema", () => {
       id: "1",
       extra: "more",
     });
+  });
+
+  it("sanitizes dynamic class names from name argument", () => {
+    const original = z.object({ x: z.string() });
+    const Cls = fromZodSchema(original, "weird-name!");
+    expect(Cls.name).toBe("weird_name_");
+    const rebuilt = toZodSchema(Cls);
+    expect(rebuilt.parse({ x: "a" })).toEqual({ x: "a" });
   });
 });

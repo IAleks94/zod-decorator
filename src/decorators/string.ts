@@ -22,6 +22,15 @@ function buildStringSchema(opts?: IsStringOptions): z.ZodString {
   if (!opts) {
     return s;
   }
+  if (opts.trim) {
+    s = s.trim();
+  }
+  if (opts.toLowerCase) {
+    s = s.toLowerCase();
+  }
+  if (opts.toUpperCase) {
+    s = s.toUpperCase();
+  }
   if (opts.min !== undefined) {
     s = s.min(opts.min);
   }
@@ -42,15 +51,6 @@ function buildStringSchema(opts?: IsStringOptions): z.ZodString {
   }
   if (opts.regex) {
     s = s.regex(opts.regex);
-  }
-  if (opts.trim) {
-    s = s.trim();
-  }
-  if (opts.toLowerCase) {
-    s = s.toLowerCase();
-  }
-  if (opts.toUpperCase) {
-    s = s.toUpperCase();
   }
   if (opts.startsWith !== undefined) {
     s = s.startsWith(opts.startsWith);

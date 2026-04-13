@@ -55,11 +55,6 @@ export function fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(
     const { inner, isOptional, isNullable, defaultValue } =
       unwrapFieldSchema(fieldSchema);
 
-    if (inner instanceof z.ZodObject) {
-      const nestedName = name ? `${name}_${key}` : key;
-      fromZodSchema(inner, toSafeClassName(nestedName));
-    }
-
     registerField(Cls.prototype, key, {
       factory: () => inner,
       isOptional,

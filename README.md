@@ -22,6 +22,8 @@ yarn add zod-decorator zod reflect-metadata
 
 Enable decorators in `tsconfig.json` (`experimentalDecorators` / `emitDecoratorMetadata` as required by your setup). Import `reflect-metadata` once at app entry (e.g. `import "reflect-metadata"`).
 
+The package is **ESM** (`"type": "module"`). Use `import` syntax in Node and bundlers that support native ESM.
+
 ## Quick start
 
 ```ts
@@ -43,6 +45,22 @@ class UserDto {
 
 const schema = toZodSchema(UserDto);
 const user = validate(UserDto, { email: "a@b.com", age: 1 });
+```
+
+### Reverse: Zod object → class
+
+```ts
+import { z } from "zod";
+import { fromZodSchema, toZodSchema, validate } from "zod-decorator";
+
+const UserSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+});
+
+const User = fromZodSchema(UserSchema, "User");
+const schema = toZodSchema(User);
+validate(User, { id: "1" });
 ```
 
 ## API reference
@@ -74,12 +92,27 @@ const user = validate(UserDto, { email: "a@b.com", age: 1 });
 | `validateSafe` | `validateSafe<T>(cls, data: unknown): z.SafeParseReturnType<unknown, T>` | `toZodSchema(cls).safeParse(data)`. |
 | `fromZodSchema` | `fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(schema: T, name?: string): new () => z.infer<T>` | Generates a class with `registerField` metadata from an existing Zod object shape (optional unwrap of optional/nullable/default; nested objects). |
 
+### Constants
+
+| Export | Description |
+|--------|-------------|
+| `VERSION` | Package version string (aligned with `package.json`). |
+
+`IsStringOptions`, `IsNumberOptions`, `IsDateOptions`, `IsArrayOptions`, and `FieldMeta` are exported for typing helpers.
+
+### Behavior notes
+
+- **`toZodSchema` and inheritance:** `getFields` walks the prototype chain; a subclass field with the same name as a parent **overrides** the parent’s metadata for that key.
+- **`@IsString` option order:** `trim` and case options run **before** `min` / `max` / `length` and format checks, so length counts the normalized string.
+- **`fromZodSchema` / `toZodSchema` roundtrip:** Object-level settings on the original `z.object()` (e.g. `.strict()`, `.passthrough()`, `.catchall()`) are **not** preserved; the builder always emits a plain `z.object(shape)`. Field-level validations that live only on unsupported wrapper types (e.g. some `ZodEffects` chains) may not round-trip.
+- **`@Refine`:** Refinement callbacks must be **synchronous**. Use Zod directly for async refinements (`parseAsync` / `superRefine`).
+
 ## class-validator vs zod-decorator
 
 **class-validator** (imperative style with `class-validator` + `class-transformer`):
 
 ```ts
-import { IsEmail, IsOptional, IsInt, Min } from "class-validator";
+import { IsEmail, IsOptional, IsString, IsInt, Min } from "class-validator";
 
 class UserDto {
   @IsEmail()
@@ -98,7 +131,7 @@ class UserDto {
 **zod-decorator** (decorators → Zod schema):
 
 ```ts
-import { Schema, IsString, IsNumber, IsOptional } from "zod-decorator";
+import { Schema, IsString, IsNumber, IsOptional, toZodSchema } from "zod-decorator";
 
 @Schema()
 class UserDto {

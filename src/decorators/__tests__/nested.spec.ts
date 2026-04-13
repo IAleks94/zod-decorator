@@ -23,6 +23,18 @@ describe("@Nested()", () => {
     expect(() => schema.parse({ inner: { name: 1 } })).toThrow();
   });
 
+  it("does not overflow the stack for mutually nested classes", () => {
+    class A {
+      @Nested(() => B)
+      b!: B;
+    }
+    class B {
+      @Nested(() => A)
+      a!: A;
+    }
+    expect(() => toZodSchema(A)).not.toThrow();
+  });
+
   it("supports forward references via factory (nested class declared after parent)", () => {
     class Outer {
       @Nested(() => Inner)

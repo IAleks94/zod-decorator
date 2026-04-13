@@ -1,7 +1,11 @@
 # Plan: zod-decorator MVP
 
+**Status:** MVP complete (branch `zod-decorator-mvp`, 2026-04).
+
 ## Overview
 Implement the zod-decorator library -- a TypeScript decorator-based wrapper around Zod that brings class-validator DX to Zod schema validation. Includes metadata store, type/modifier decorators, bidirectional schema builders (toZodSchema + fromZodSchema), comprehensive tests, and README.
+
+Task 9 README badges: npm, license, and TypeScript (no separate CI “build” badge unless CI is added).
 
 ## Validation Commands
 - `pnpm build`
@@ -41,7 +45,7 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Create `src/decorators/modifiers.ts` with `@IsOptional()` decorator that calls `registerField()` with `{ isOptional: true }`
 - [x] Add `@IsNullable()` decorator that calls `registerField()` with `{ isNullable: true }`
 - [x] Add `@Default(value: unknown)` decorator that calls `registerField()` with `{ defaultValue: value }`
-- [x] Add `@Transform(fn: (val: unknown) => unknown)` decorator that appends the transform function to the `transforms` array in `FieldMeta`
+- [x] Add `@Transform(fn: (val: unknown) => unknown)` decorator that wraps `fn` as a schema-level transform (stored in `FieldMeta.transforms` as `(schema) => schema.transform(fn)`)
 - [x] Add `@Refine(check: (val: unknown) => unknown, opts?: { message?: string })` decorator that appends to the `refinements` array in `FieldMeta`
 - [x] Export all modifiers from `src/decorators/index.ts`
 - [x] Verify `pnpm build` passes
@@ -66,6 +70,7 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 
 ### Task 7: Decorator unit tests
 - [x] Create `src/decorators/__tests__/string.spec.ts` testing `@IsString()` with all options: basic string, min, max, length, email, url, uuid, regex, trim, toLowerCase, toUpperCase, startsWith, endsWith. Verify each option produces correct validation behavior (accepts valid, rejects invalid)
+- [x] Aggregate coverage also exists in `src/decorators/__tests__/type-decorators.spec.ts` (broader decorator smoke tests)
 - [x] Create `src/decorators/__tests__/number.spec.ts` testing `@IsNumber()` with: basic number, int, positive, negative, nonnegative, min, max, finite, multipleOf
 - [x] Create `src/decorators/__tests__/boolean.spec.ts` testing `@IsBoolean()` accepts true/false, rejects non-booleans
 - [x] Create `src/decorators/__tests__/date.spec.ts` testing `@IsDate()` with: basic date, min, max
