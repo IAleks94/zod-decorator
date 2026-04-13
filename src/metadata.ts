@@ -8,11 +8,18 @@ export interface FieldMeta {
   isNullable: boolean;
   defaultValue: unknown | undefined;
   transforms: Array<(schema: z.ZodTypeAny) => z.ZodTypeAny>;
-  refinements: Array<{ check: (val: unknown) => unknown; message?: string }>;
+  /** Sync predicates only; async checks are not supported (use parseAsync on the raw schema if needed). */
+  refinements: Array<{ check: (val: unknown) => boolean; message?: string }>;
 }
 
 export const SCHEMA_FIELDS = Symbol("zod-decorator:schema-fields");
 export const SCHEMA_MARKER = Symbol("zod-decorator:schema-marker");
+export const SCHEMA_OBJECT_OPTIONS = Symbol("zod-decorator:schema-object-options");
+
+export interface SchemaObjectOptions {
+  unknownKeys: import("zod").UnknownKeysParam;
+  catchall: z.ZodTypeAny;
+}
 
 function defaultFieldMeta(propertyKey: string): FieldMeta {
   return {

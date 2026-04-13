@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { z } from "zod";
-import { registerField } from "./metadata.js";
+import { registerField, SCHEMA_OBJECT_OPTIONS } from "./metadata.js";
+import { toZodSchema } from "./schema-builder.js";
 
 function unwrapFieldSchema(fieldSchema: z.ZodTypeAny): {
   inner: z.ZodTypeAny;
@@ -14,15 +15,16 @@ function unwrapFieldSchema(fieldSchema: z.ZodTypeAny): {
   let defaultValue: unknown | undefined = undefined;
 
   while (true) {
-    if (current instanceof z.ZodOptional) {
+    const t = current._def.typeName as string;
+    if (t === "ZodOptional") {
       isOptional = true;
-      current = current.unwrap();
-    } else if (current instanceof z.ZodNullable) {
+      current = (current as z.ZodOptional<z.ZodTypeAny>).unwrap();
+    } else if (t === "ZodNullable") {
       isNullable = true;
-      current = current.unwrap();
-    } else if (current instanceof z.ZodDefault) {
-      defaultValue = current._def.defaultValue();
-      current = current.removeDefault();
+      current = (current as z.ZodNullable<z.ZodTypeAny>).unwrap();
+    } else if (t === "ZodDefault") {
+      defaultValue = (current as z.ZodDefault<z.ZodTypeAny>)._def.defaultValue();
+      current = (current as z.ZodDefault<z.ZodTypeAny>).removeDefault();
     } else {
       break;
     }
@@ -48,6 +50,11 @@ export function fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(
   name?: string
 ): new () => z.infer<T> {
   const Cls = createConstructor(name) as new () => z.infer<T>;
+  Reflect.defineMetadata(SCHEMA_OBJECT_OPTIONS, {
+    unknownKeys: schema._def.unknownKeys,
+    catchall: schema._def.catchall,
+  }, Cls);
+
   const shape = schema.shape;
 
   for (const key of Object.keys(shape)) {
@@ -55,14 +62,31 @@ export function fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(
     const { inner, isOptional, isNullable, defaultValue } =
       unwrapFieldSchema(fieldSchema);
 
-    registerField(Cls.prototype, key, {
-      factory: () => inner,
-      isOptional,
-      isNullable,
-      defaultValue,
-      transforms: [],
-      refinements: [],
-    });
+    if (inner._def.typeName === "ZodObject") {
+      const nestedName = `${toSafeClassName(key)}Nested`;
+      const NestedCls = fromZodSchema(
+        inner as z.ZodObject<z.ZodRawShape>,
+        nestedName
+      );
+      registerField(Cls.prototype, key, {
+        factory: () =>
+          z.lazy(() => toZodSchema(NestedCls)) as z.ZodTypeAny,
+        isOptional,
+        isNullable,
+        defaultValue,
+        transforms: [],
+        refinements: [],
+      });
+    } else {
+      registerField(Cls.prototype, key, {
+        factory: () => inner,
+        isOptional,
+        isNullable,
+        defaultValue,
+        transforms: [],
+        refinements: [],
+      });
+    }
   }
 
   return Cls;

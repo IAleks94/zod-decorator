@@ -29,7 +29,7 @@ export function Transform(fn: (val: unknown) => unknown): PropertyDecorator {
 }
 
 export function Refine(
-  check: (val: unknown) => unknown,
+  check: (val: unknown) => boolean,
   opts?: { message?: string }
 ): PropertyDecorator {
   return (target, propertyKey) => {

@@ -21,6 +21,20 @@ function expectEquivalentObjectParse(
 }
 
 describe("fromZodSchema", () => {
+  it("preserves strict unknownKeys on roundtrip", () => {
+    const original = z
+      .object({
+        a: z.string(),
+      })
+      .strict();
+    const Cls = fromZodSchema(original, "StrictOuter");
+    const rebuilt = toZodSchema(Cls);
+    expectEquivalentObjectParse(original, rebuilt, [
+      { a: "x" },
+      { a: "x", extra: 1 },
+    ]);
+  });
+
   it("roundtrip: toZodSchema(fromZodSchema(schema)) matches validation", () => {
     const original = z.object({
       a: z.string(),
