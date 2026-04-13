@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { z } from "zod";
 import { describe, expect, it } from "vitest";
-import { IsString } from "../decorators/index.js";
+import { IsNullable, IsString } from "../decorators/index.js";
 import { fromZodSchema } from "../schema-from-zod.js";
 import { toZodSchema, validate } from "../schema-builder.js";
 
@@ -183,6 +183,22 @@ describe("fromZodSchema", () => {
       { user: { id: "ab", score: 1.5 } },
       {},
     ]);
+  });
+
+  it("merged modifiers on fromZodSchema fields apply after wrapperChain", () => {
+    const baseSchema = z.object({
+      a: z.string().optional(),
+    });
+    const Base = fromZodSchema(baseSchema, "MergeWrappers");
+
+    class Extended extends Base {
+      @IsNullable()
+      a!: string | undefined | null;
+    }
+
+    const rebuilt = toZodSchema(Extended);
+    expect(rebuilt.parse({ a: null })).toEqual({ a: null });
+    expect(rebuilt.parse({})).toEqual({});
   });
 
   it("extending a fromZodSchema class with decorators merges fields", () => {

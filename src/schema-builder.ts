@@ -22,16 +22,20 @@ function applyFieldMeta(field: FieldMeta): z.ZodTypeAny {
         schema = schema.default(step.factory as never);
       }
     }
-  } else {
-    if (field.isOptional) {
-      schema = schema.optional();
-    }
-    if (field.isNullable) {
-      schema = schema.nullable();
-    }
-    if (field.defaultValue !== undefined) {
-      schema = schema.default(field.defaultValue as never);
-    }
+  }
+  // Decorator / merge flags (e.g. subclass adds @IsNullable on a fromZodSchema field): apply after
+  // wrapperChain so merged modifiers are not ignored. Skip if the outer layer already matches.
+  if (field.isOptional && (schema._def as { typeName?: string }).typeName !== "ZodOptional") {
+    schema = schema.optional();
+  }
+  if (field.isNullable && (schema._def as { typeName?: string }).typeName !== "ZodNullable") {
+    schema = schema.nullable();
+  }
+  if (
+    field.defaultValue !== undefined &&
+    (schema._def as { typeName?: string }).typeName !== "ZodDefault"
+  ) {
+    schema = schema.default(field.defaultValue as never);
   }
   return schema;
 }
