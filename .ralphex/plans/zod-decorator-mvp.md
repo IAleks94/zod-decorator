@@ -56,13 +56,13 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Mark completed
 
 ### Task 6: Reverse builder -- fromZodSchema
-- [ ] Create `src/schema-from-zod.ts` with `fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(schema: T, name?: string): new () => z.infer<T>`. Implementation: create a new class dynamically (using `name` for the class name if provided), iterate `schema.shape`, for each field unwrap wrapper types (`ZodOptional` -> set isOptional, `ZodNullable` -> set isNullable, `ZodDefault` -> set defaultValue) to get the inner type, then call `registerField()` with a factory that returns the original Zod field schema (preserving all validations). Return the class constructor
-- [ ] Handle unwrapping of: `z.ZodOptional` (via `._def.innerType`), `z.ZodNullable` (via `._def.innerType`), `z.ZodDefault` (via `._def.innerType` + `._def.defaultValue()`)
-- [ ] Handle nested `z.ZodObject` fields by recursively calling `fromZodSchema` for nested objects
-- [ ] Handle `z.ZodArray` fields by preserving the full array schema in the factory
-- [ ] Export `fromZodSchema` from `src/index.ts`
-- [ ] Verify `pnpm build` passes
-- [ ] Mark completed
+- [x] Create `src/schema-from-zod.ts` with `fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(schema: T, name?: string): new () => z.infer<T>`. Implementation: create a new class dynamically (using `name` for the class name if provided), iterate `schema.shape`, for each field unwrap wrapper types (`ZodOptional` -> set isOptional, `ZodNullable` -> set isNullable, `ZodDefault` -> set defaultValue) to get the inner type, then call `registerField()` with a factory that returns the original Zod field schema (preserving all validations). Return the class constructor
+- [x] Handle unwrapping of: `z.ZodOptional` (via `._def.innerType`), `z.ZodNullable` (via `._def.innerType`), `z.ZodDefault` (via `._def.innerType` + `._def.defaultValue()`)
+- [x] Handle nested `z.ZodObject` fields by recursively calling `fromZodSchema` for nested objects
+- [x] Handle `z.ZodArray` fields by preserving the full array schema in the factory
+- [x] Export `fromZodSchema` from `src/index.ts`
+- [x] Verify `pnpm build` passes
+- [x] Mark completed
 
 ### Task 7: Decorator unit tests
 - [ ] Create `src/decorators/__tests__/string.spec.ts` testing `@IsString()` with all options: basic string, min, max, length, email, url, uuid, regex, trim, toLowerCase, toUpperCase, startsWith, endsWith. Verify each option produces correct validation behavior (accepts valid, rejects invalid)
