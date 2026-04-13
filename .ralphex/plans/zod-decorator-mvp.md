@@ -77,11 +77,11 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Mark completed
 
 ### Task 8: Schema builder and fromZodSchema tests
-- [ ] Create `src/__tests__/schema-builder.spec.ts` with integration tests: a full class with mixed decorators (@IsString + @IsOptional + @IsNumber + @Nested + @IsArray), verify `toZodSchema()` produces correct schema, `validate()` accepts valid data and rejects invalid data, `validateSafe()` returns success/error results
-- [ ] Create `src/__tests__/schema-from-zod.spec.ts` with tests: basic roundtrip (`toZodSchema(fromZodSchema(schema))` produces equivalent validation), unwrapping optionals/nullables/defaults, nested object roundtrip, extending a fromZodSchema class with additional decorators
-- [ ] Create `src/__tests__/edge-cases.spec.ts` with tests: class inheritance (child extends parent, both have decorators), decorator ordering (@IsOptional before vs after @IsString), multiple decorators on same field (last type wins, modifiers merge), empty class produces empty z.object({})
-- [ ] Verify `pnpm test` passes with all tests green
-- [ ] Mark completed
+- [x] Create `src/__tests__/schema-builder.spec.ts` with integration tests: a full class with mixed decorators (@IsString + @IsOptional + @IsNumber + @Nested + @IsArray), verify `toZodSchema()` produces correct schema, `validate()` accepts valid data and rejects invalid data, `validateSafe()` returns success/error results
+- [x] Create `src/__tests__/schema-from-zod.spec.ts` with tests: basic roundtrip (`toZodSchema(fromZodSchema(schema))` produces equivalent validation), unwrapping optionals/nullables/defaults, nested object roundtrip, extending a fromZodSchema class with additional decorators
+- [x] Create `src/__tests__/edge-cases.spec.ts` with tests: class inheritance (child extends parent, both have decorators), decorator ordering (@IsOptional before vs after @IsString), multiple decorators on same field (last type wins, modifiers merge), empty class produces empty z.object({})
+- [x] Verify `pnpm test` passes with all tests green
+- [x] Mark completed
 
 ### Task 9: README
 - [ ] Write `README.md` with sections: project title and badges (npm, license, build), one-paragraph motivation (class-validator DX + Zod power), installation instructions (pnpm/npm/yarn), quick start example showing a decorated class with toZodSchema/validate
