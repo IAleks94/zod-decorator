@@ -3,12 +3,12 @@ import { getFields, type FieldMeta } from "./metadata.js";
 
 function applyFieldMeta(field: FieldMeta): z.ZodTypeAny {
   let schema = field.factory();
-  for (const t of field.transforms) {
-    schema = t(schema);
-  }
   for (const r of field.refinements) {
     const params = r.message !== undefined ? { message: r.message } : {};
     schema = schema.refine((val) => Boolean(r.check(val)), params);
+  }
+  for (const t of field.transforms) {
+    schema = t(schema);
   }
   if (field.isOptional) {
     schema = schema.optional();
@@ -31,4 +31,18 @@ export function toZodSchema<T>(
     shape[field.propertyKey] = applyFieldMeta(field);
   }
   return z.object(shape);
+}
+
+export function validate<T>(
+  cls: new (...args: unknown[]) => T,
+  data: unknown
+): T {
+  return toZodSchema(cls).parse(data) as T;
+}
+
+export function validateSafe<T>(
+  cls: new (...args: unknown[]) => T,
+  data: unknown
+): z.SafeParseReturnType<unknown, T> {
+  return toZodSchema(cls).safeParse(data) as z.SafeParseReturnType<unknown, T>;
 }

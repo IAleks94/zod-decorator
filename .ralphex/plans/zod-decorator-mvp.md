@@ -48,12 +48,12 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Mark completed
 
 ### Task 5: Schema builder -- toZodSchema
-- [ ] Create `src/schema-builder.ts` with `toZodSchema<T>(cls: new (...args: unknown[]) => T): z.ZodObject<Record<string, z.ZodTypeAny>>`. Implementation: call `getFields(cls)`, iterate fields, for each field call `field.factory()` to get the base schema, then apply refinements via `.refine()`, transforms via `.transform()`, `.optional()` if `isOptional`, `.nullable()` if `isNullable`, `.default()` if `defaultValue` is set. Build shape object and return `z.object(shape)`
-- [ ] Add `validate<T>(cls: new (...args: unknown[]) => T, data: unknown): z.infer<...>` as a shortcut for `toZodSchema(cls).parse(data)`
-- [ ] Add `validateSafe<T>(cls: new (...args: unknown[]) => T, data: unknown): z.SafeParseReturnType<...>` as a shortcut for `toZodSchema(cls).safeParse(data)`
-- [ ] Update `src/index.ts` to export everything: all decorators from `src/decorators/index.ts`, `toZodSchema`, `validate`, `validateSafe` from `src/schema-builder.ts`, `FieldMeta` type from `src/metadata.ts`
-- [ ] Verify `pnpm build` passes
-- [ ] Mark completed
+- [x] Create `src/schema-builder.ts` with `toZodSchema<T>(cls: new (...args: unknown[]) => T): z.ZodObject<Record<string, z.ZodTypeAny>>`. Implementation: call `getFields(cls)`, iterate fields, for each field call `field.factory()` to get the base schema, then apply refinements via `.refine()`, transforms via `.transform()`, `.optional()` if `isOptional`, `.nullable()` if `isNullable`, `.default()` if `defaultValue` is set. Build shape object and return `z.object(shape)`
+- [x] Add `validate<T>(cls: new (...args: unknown[]) => T, data: unknown): z.infer<...>` as a shortcut for `toZodSchema(cls).parse(data)`
+- [x] Add `validateSafe<T>(cls: new (...args: unknown[]) => T, data: unknown): z.SafeParseReturnType<...>` as a shortcut for `toZodSchema(cls).safeParse(data)`
+- [x] Update `src/index.ts` to export everything: all decorators from `src/decorators/index.ts`, `toZodSchema`, `validate`, `validateSafe` from `src/schema-builder.ts`, `FieldMeta` type from `src/metadata.ts`
+- [x] Verify `pnpm build` passes
+- [x] Mark completed
 
 ### Task 6: Reverse builder -- fromZodSchema
 - [ ] Create `src/schema-from-zod.ts` with `fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(schema: T, name?: string): new () => z.infer<T>`. Implementation: create a new class dynamically (using `name` for the class name if provided), iterate `schema.shape`, for each field unwrap wrapper types (`ZodOptional` -> set isOptional, `ZodNullable` -> set isNullable, `ZodDefault` -> set defaultValue) to get the inner type, then call `registerField()` with a factory that returns the original Zod field schema (preserving all validations). Return the class constructor
