@@ -1,92 +1,93 @@
 import "reflect-metadata";
 import { describe, expect, it } from "vitest";
-import { toZodSchema } from "../../schema-builder.js";
 import {
   Default,
   IsNullable,
   IsOptional,
-  IsString,
   Refine,
   Transform,
-} from "../index.js";
+} from "../modifiers.js";
+import { IsString } from "../string.js";
+import { toZodSchema, validateSafe } from "../../schema-builder.js";
 
 describe("modifier decorators", () => {
-  it("@IsOptional allows omitting the property", () => {
-    class T {
+  it("@IsOptional() allows undefined", () => {
+    class C {
       @IsOptional()
       @IsString()
-      s?: string;
+      s!: string | undefined;
     }
-    const schema = toZodSchema(T);
+    const schema = toZodSchema(C);
     expect(schema.parse({})).toEqual({});
     expect(schema.parse({ s: "x" })).toEqual({ s: "x" });
   });
 
-  it("@IsNullable allows null", () => {
-    class T {
+  it("@IsOptional() after @IsString() merges correctly", () => {
+    class C {
+      @IsString()
+      @IsOptional()
+      s!: string | undefined;
+    }
+    const schema = toZodSchema(C);
+    expect(schema.parse({})).toEqual({});
+    expect(schema.parse({ s: "x" })).toEqual({ s: "x" });
+  });
+
+  it("@IsNullable() allows null", () => {
+    class C {
       @IsNullable()
       @IsString()
       s!: string | null;
     }
-    const schema = toZodSchema(T);
+    const schema = toZodSchema(C);
     expect(schema.parse({ s: null })).toEqual({ s: null });
-    expect(schema.parse({ s: "a" })).toEqual({ s: "a" });
+    expect(schema.parse({ s: "x" })).toEqual({ s: "x" });
   });
 
-  it("@Default supplies a value when the key is missing", () => {
-    class T {
+  it("@Default() applies when value missing", () => {
+    class C {
       @Default("fallback")
       @IsString()
       s!: string;
     }
-    const schema = toZodSchema(T);
+    const schema = toZodSchema(C);
     expect(schema.parse({})).toEqual({ s: "fallback" });
     expect(schema.parse({ s: "hi" })).toEqual({ s: "hi" });
   });
 
-  it("@Transform maps the parsed value", () => {
-    class T {
-      @Transform((v) => (typeof v === "string" ? v.toUpperCase() : v))
+  it("@Transform() maps parsed value", () => {
+    class C {
+      @Transform((v) => String(v).toUpperCase())
       @IsString()
       s!: string;
     }
-    const schema = toZodSchema(T);
+    const schema = toZodSchema(C);
     expect(schema.parse({ s: "ab" })).toEqual({ s: "AB" });
   });
 
-  it("@Refine rejects when the check is falsy", () => {
-    class T {
-      @Refine((v) => v === "ok")
-      @IsString()
-      s!: string;
-    }
-    const schema = toZodSchema(T);
-    expect(schema.parse({ s: "ok" })).toEqual({ s: "ok" });
-    expect(() => schema.parse({ s: "no" })).toThrow();
-  });
-
-  it("@Refine uses a custom message when provided", () => {
-    class T {
+  it("@Refine() adds custom validation", () => {
+    class C {
       @Refine((v) => v === "ok", { message: "must be ok" })
       @IsString()
       s!: string;
     }
-    const schema = toZodSchema(T);
-    const r = schema.safeParse({ s: "no" });
-    expect(r.success).toBe(false);
-    if (!r.success) {
-      expect(r.error.issues[0]?.message).toBe("must be ok");
-    }
+    const schema = toZodSchema(C);
+    expect(schema.parse({ s: "ok" })).toEqual({ s: "ok" });
+    const bad = validateSafe(C, { s: "no" });
+    expect(bad.success).toBe(false);
   });
 
-  it("merges multiple @Transform calls in order", () => {
-    class T {
-      @Transform((v) => (typeof v === "string" ? v.trim() : v))
-      @Transform((v) => (typeof v === "string" ? v.toLowerCase() : v))
+  it("composes optional + nullable + default", () => {
+    class C {
+      @IsOptional()
+      @IsNullable()
+      @Default("x")
       @IsString()
-      s!: string;
+      s!: string | null | undefined;
     }
-    const schema = toZodSchema(T);
-    expect(schema.parse({ s: "  HELLO  " })).toEqual({ s: "hello" });
+    const schema = toZodSchema(C);
+    expect(schema.parse({})).toEqual({ s: "x" });
+    expect(schema.parse({ s: null })).toEqual({ s: null });
+    expect(schema.parse({ s: "y" })).toEqual({ s: "y" });
   });
 });

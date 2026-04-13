@@ -1,0 +1,49 @@
+import "reflect-metadata";
+import { describe, expect, it } from "vitest";
+import { z } from "zod";
+import { IsArray } from "../array.js";
+import { toZodSchema } from "../../schema-builder.js";
+
+describe("@IsArray()", () => {
+  it("defaults items to z.unknown()", () => {
+    class C {
+      @IsArray()
+      a!: unknown[];
+    }
+    const schema = toZodSchema(C);
+    expect(schema.parse({ a: [1, "x", {}] })).toEqual({ a: [1, "x", {}] });
+    expect(() => schema.parse({ a: "nope" })).toThrow();
+  });
+
+  it("uses items factory for element typing", () => {
+    class C {
+      @IsArray({ items: () => z.string() })
+      a!: string[];
+    }
+    const schema = toZodSchema(C);
+    expect(schema.parse({ a: ["x", "y"] })).toEqual({ a: ["x", "y"] });
+    expect(() => schema.parse({ a: [1] })).toThrow();
+  });
+
+  it("enforces min and max length", () => {
+    class C {
+      @IsArray({ min: 2, max: 3 })
+      a!: unknown[];
+    }
+    const schema = toZodSchema(C);
+    expect(schema.parse({ a: [1, 2] })).toEqual({ a: [1, 2] });
+    expect(schema.parse({ a: [1, 2, 3] })).toEqual({ a: [1, 2, 3] });
+    expect(() => schema.parse({ a: [1] })).toThrow();
+    expect(() => schema.parse({ a: [1, 2, 3, 4] })).toThrow();
+  });
+
+  it("enforces nonempty", () => {
+    class C {
+      @IsArray({ nonempty: true })
+      a!: unknown[];
+    }
+    const schema = toZodSchema(C);
+    expect(schema.parse({ a: [1] })).toEqual({ a: [1] });
+    expect(() => schema.parse({ a: [] })).toThrow();
+  });
+});

@@ -65,16 +65,16 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Mark completed
 
 ### Task 7: Decorator unit tests
-- [ ] Create `src/decorators/__tests__/string.spec.ts` testing `@IsString()` with all options: basic string, min, max, length, email, url, uuid, regex, trim, toLowerCase, toUpperCase, startsWith, endsWith. Verify each option produces correct validation behavior (accepts valid, rejects invalid)
-- [ ] Create `src/decorators/__tests__/number.spec.ts` testing `@IsNumber()` with: basic number, int, positive, negative, nonnegative, min, max, finite, multipleOf
-- [ ] Create `src/decorators/__tests__/boolean.spec.ts` testing `@IsBoolean()` accepts true/false, rejects non-booleans
-- [ ] Create `src/decorators/__tests__/date.spec.ts` testing `@IsDate()` with: basic date, min, max
-- [ ] Create `src/decorators/__tests__/enum.spec.ts` testing `@IsEnum()` with string arrays and native TS enums
-- [ ] Create `src/decorators/__tests__/array.spec.ts` testing `@IsArray()` with: basic array, items type, min, max, nonempty
-- [ ] Create `src/decorators/__tests__/nested.spec.ts` testing `@Nested()` with nested classes and forward reference factories
-- [ ] Create `src/decorators/__tests__/modifiers.spec.ts` testing `@IsOptional()`, `@IsNullable()`, `@Default()`, `@Transform()`, `@Refine()` and their composition with type decorators in both orders
-- [ ] Verify `pnpm test` passes with all tests green
-- [ ] Mark completed
+- [x] Create `src/decorators/__tests__/string.spec.ts` testing `@IsString()` with all options: basic string, min, max, length, email, url, uuid, regex, trim, toLowerCase, toUpperCase, startsWith, endsWith. Verify each option produces correct validation behavior (accepts valid, rejects invalid)
+- [x] Create `src/decorators/__tests__/number.spec.ts` testing `@IsNumber()` with: basic number, int, positive, negative, nonnegative, min, max, finite, multipleOf
+- [x] Create `src/decorators/__tests__/boolean.spec.ts` testing `@IsBoolean()` accepts true/false, rejects non-booleans
+- [x] Create `src/decorators/__tests__/date.spec.ts` testing `@IsDate()` with: basic date, min, max
+- [x] Create `src/decorators/__tests__/enum.spec.ts` testing `@IsEnum()` with string arrays and native TS enums
+- [x] Create `src/decorators/__tests__/array.spec.ts` testing `@IsArray()` with: basic array, items type, min, max, nonempty
+- [x] Create `src/decorators/__tests__/nested.spec.ts` testing `@Nested()` with nested classes and forward reference factories
+- [x] Create `src/decorators/__tests__/modifiers.spec.ts` testing `@IsOptional()`, `@IsNullable()`, `@Default()`, `@Transform()`, `@Refine()` and their composition with type decorators in both orders
+- [x] Verify `pnpm test` passes with all tests green
+- [x] Mark completed
 
 ### Task 8: Schema builder and fromZodSchema tests
 - [ ] Create `src/__tests__/schema-builder.spec.ts` with integration tests: a full class with mixed decorators (@IsString + @IsOptional + @IsNumber + @Nested + @IsArray), verify `toZodSchema()` produces correct schema, `validate()` accepts valid data and rejects invalid data, `validateSafe()` returns success/error results
