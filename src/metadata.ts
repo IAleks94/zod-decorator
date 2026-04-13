@@ -46,6 +46,26 @@ function defaultFieldMeta(propertyKey: string): FieldMeta {
 }
 
 function mergeFieldMeta(existing: FieldMeta, partial: Partial<FieldMeta>): FieldMeta {
+  const factoryReplaced =
+    Object.prototype.hasOwnProperty.call(partial, "factory") && partial.factory !== undefined;
+
+  if (factoryReplaced) {
+    return {
+      propertyKey: existing.propertyKey,
+      factory: partial.factory!,
+      isOptional: partial.isOptional !== undefined ? partial.isOptional : existing.isOptional,
+      isNullable: partial.isNullable !== undefined ? partial.isNullable : existing.isNullable,
+      defaultValue: Object.prototype.hasOwnProperty.call(partial, "defaultValue")
+        ? partial.defaultValue
+        : existing.defaultValue,
+      wrapperChain: Object.prototype.hasOwnProperty.call(partial, "wrapperChain")
+        ? partial.wrapperChain
+        : undefined,
+      transforms: partial.transforms ?? [],
+      refinements: partial.refinements ?? [],
+    };
+  }
+
   return {
     propertyKey: existing.propertyKey,
     factory: partial.factory ?? existing.factory,
