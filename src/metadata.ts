@@ -84,6 +84,16 @@ function mergeFieldMeta(existing: FieldMeta, partial: Partial<FieldMeta>): Field
   };
 }
 
+function metadataConstructor(
+  target: object
+): new (...args: unknown[]) => unknown {
+  // Instance property decorators receive the prototype; static property decorators receive the class constructor.
+  if (typeof target === "function") {
+    return target as new (...args: unknown[]) => unknown;
+  }
+  return target.constructor as new (...args: unknown[]) => unknown;
+}
+
 export function registerField(
   target: object,
   propertyKey: string | symbol,
@@ -94,7 +104,7 @@ export function registerField(
       "zod-decorator: symbol property keys are not supported; use string-keyed fields only."
     );
   }
-  const ctor = target.constructor as new (...args: unknown[]) => unknown;
+  const ctor = metadataConstructor(target);
   const existingList = Reflect.getMetadata(SCHEMA_FIELDS, ctor) as FieldMeta[] | undefined;
   const list: FieldMeta[] = existingList ? [...existingList] : [];
   const idx = list.findIndex((f) => f.propertyKey === propertyKey);

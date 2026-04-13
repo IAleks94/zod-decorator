@@ -102,6 +102,7 @@ validate(User, { id: "1" });
 
 ### Behavior notes
 
+- **Instance vs static properties:** Use decorators on **instance** properties for typical DTOs. **Static** properties are now supported: metadata is stored on the declaring class (not confused with `Function`). Prefer instance fields unless you intentionally model class-level values.
 - **`@Refine` / `@Transform` pipeline:** For each field, `toZodSchema` runs **all** `.refine()` steps first (in registration order), then **all** `.transform()` steps (in registration order). It does not interleave them in source order; use Zod directly if you need a different chain order.
 - **`toZodSchema` and inheritance:** `getFields` walks the prototype chain; a subclass field with the same name as a parent **overrides** the parent’s metadata for that key.
 - **`@IsString` option order:** `trim` and case options run **before** `min` / `max` / `length` and format checks, so length counts the normalized string.

@@ -3,6 +3,13 @@ import { z } from "zod";
 import { getFields, registerField } from "../metadata.js";
 
 describe("registerField", () => {
+  it("associates fields with the class when decorating static properties", () => {
+    class A {}
+    registerField(A as object, "id", { factory: () => z.string() });
+    const fields = getFields(A);
+    expect(fields.some((f) => f.propertyKey === "id")).toBe(true);
+  });
+
   it("rejects symbol property keys", () => {
     class A {}
     expect(() =>
