@@ -8,11 +8,11 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - `pnpm test`
 
 ### Task 1: Project setup and dependency installation
-- [ ] Run `pnpm install` in the project root to install all dependencies from package.json (zod, reflect-metadata, typescript, vitest)
-- [ ] Create a minimal `src/index.ts` that exports a placeholder (e.g. `export const VERSION = "0.1.0"`)
-- [ ] Verify `pnpm build` compiles successfully and produces `dist/index.js`
-- [ ] Verify `pnpm test` runs without errors (no test files yet is OK)
-- [ ] Mark completed
+- [x] Run `pnpm install` in the project root to install all dependencies from package.json (zod, reflect-metadata, typescript, vitest)
+- [x] Create a minimal `src/index.ts` that exports a placeholder (e.g. `export const VERSION = "0.1.0"`)
+- [x] Verify `pnpm build` compiles successfully and produces `dist/index.js`
+- [x] Verify `pnpm test` runs without errors (no test files yet is OK)
+- [x] Mark completed
 
 ### Task 2: Metadata store
 - [ ] Create `src/metadata.ts` with the `FieldMeta` interface containing: `propertyKey: string`, `factory: () => z.ZodTypeAny`, `isOptional: boolean`, `isNullable: boolean`, `defaultValue: unknown | undefined`, `transforms: Array<(schema: z.ZodTypeAny) => z.ZodTypeAny>`, `refinements: Array<{ check: (val: unknown) => unknown, message?: string }>`
