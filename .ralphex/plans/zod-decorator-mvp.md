@@ -25,17 +25,17 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Mark completed
 
 ### Task 3: Type decorators
-- [ ] Create `src/decorators/schema.ts` with `@Schema()` class decorator that sets `SCHEMA_MARKER` metadata on the class
-- [ ] Create `src/decorators/string.ts` with `@IsString(opts?)` decorator. Options interface: `{ min?: number, max?: number, length?: number, email?: boolean, url?: boolean, uuid?: boolean, regex?: RegExp, trim?: boolean, toLowerCase?: boolean, toUpperCase?: boolean, startsWith?: string, endsWith?: string }`. Build the `z.string()` chain from options and call `registerField()`
-- [ ] Create `src/decorators/number.ts` with `@IsNumber(opts?)` decorator. Options interface: `{ int?: boolean, positive?: boolean, negative?: boolean, nonnegative?: boolean, min?: number, max?: number, finite?: boolean, multipleOf?: number }`. Build `z.number()` chain from options and call `registerField()`
-- [ ] Create `src/decorators/boolean.ts` with `@IsBoolean()` decorator that registers `z.boolean()` via `registerField()`
-- [ ] Create `src/decorators/date.ts` with `@IsDate(opts?)` decorator. Options: `{ min?: Date, max?: Date }`. Build `z.date()` chain and call `registerField()`
-- [ ] Create `src/decorators/enum.ts` with `@IsEnum(values)` decorator that takes a `z.EnumLike` or array of string values and registers `z.enum()` or `z.nativeEnum()` via `registerField()`
-- [ ] Create `src/decorators/array.ts` with `@IsArray(opts?)` decorator. Options: `{ items?: () => z.ZodTypeAny, min?: number, max?: number, nonempty?: boolean }`. Build `z.array()` chain and call `registerField()`. If no `items` provided, default to `z.unknown()`
-- [ ] Create `src/decorators/nested.ts` with `@Nested(classFn)` decorator that takes a lazy `() => Constructor` factory, calls `toZodSchema()` on it at schema build time (import lazily to avoid circular deps), and registers via `registerField()`
-- [ ] Create `src/decorators/index.ts` barrel that re-exports all decorators
-- [ ] Verify `pnpm build` passes
-- [ ] Mark completed
+- [x] Create `src/decorators/schema.ts` with `@Schema()` class decorator that sets `SCHEMA_MARKER` metadata on the class
+- [x] Create `src/decorators/string.ts` with `@IsString(opts?)` decorator. Options interface: `{ min?: number, max?: number, length?: number, email?: boolean, url?: boolean, uuid?: boolean, regex?: RegExp, trim?: boolean, toLowerCase?: boolean, toUpperCase?: boolean, startsWith?: string, endsWith?: string }`. Build the `z.string()` chain from options and call `registerField()`
+- [x] Create `src/decorators/number.ts` with `@IsNumber(opts?)` decorator. Options interface: `{ int?: boolean, positive?: boolean, negative?: boolean, nonnegative?: boolean, min?: number, max?: number, finite?: boolean, multipleOf?: number }`. Build `z.number()` chain from options and call `registerField()`
+- [x] Create `src/decorators/boolean.ts` with `@IsBoolean()` decorator that registers `z.boolean()` via `registerField()`
+- [x] Create `src/decorators/date.ts` with `@IsDate(opts?)` decorator. Options: `{ min?: Date, max?: Date }`. Build `z.date()` chain and call `registerField()`
+- [x] Create `src/decorators/enum.ts` with `@IsEnum(values)` decorator that takes a `z.EnumLike` or array of string values and registers `z.enum()` or `z.nativeEnum()` via `registerField()`
+- [x] Create `src/decorators/array.ts` with `@IsArray(opts?)` decorator. Options: `{ items?: () => z.ZodTypeAny, min?: number, max?: number, nonempty?: boolean }`. Build `z.array()` chain and call `registerField()`. If no `items` provided, default to `z.unknown()`
+- [x] Create `src/decorators/nested.ts` with `@Nested(classFn)` decorator that takes a lazy `() => Constructor` factory, calls `toZodSchema()` on it at schema build time (import lazily to avoid circular deps), and registers via `registerField()`
+- [x] Create `src/decorators/index.ts` barrel that re-exports all decorators
+- [x] Verify `pnpm build` passes
+- [x] Mark completed
 
 ### Task 4: Modifier decorators
 - [ ] Create `src/decorators/modifiers.ts` with `@IsOptional()` decorator that calls `registerField()` with `{ isOptional: true }`
