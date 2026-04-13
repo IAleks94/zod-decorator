@@ -38,14 +38,14 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Mark completed
 
 ### Task 4: Modifier decorators
-- [ ] Create `src/decorators/modifiers.ts` with `@IsOptional()` decorator that calls `registerField()` with `{ isOptional: true }`
-- [ ] Add `@IsNullable()` decorator that calls `registerField()` with `{ isNullable: true }`
-- [ ] Add `@Default(value: unknown)` decorator that calls `registerField()` with `{ defaultValue: value }`
-- [ ] Add `@Transform(fn: (val: unknown) => unknown)` decorator that appends the transform function to the `transforms` array in `FieldMeta`
-- [ ] Add `@Refine(check: (val: unknown) => unknown, opts?: { message?: string })` decorator that appends to the `refinements` array in `FieldMeta`
-- [ ] Export all modifiers from `src/decorators/index.ts`
-- [ ] Verify `pnpm build` passes
-- [ ] Mark completed
+- [x] Create `src/decorators/modifiers.ts` with `@IsOptional()` decorator that calls `registerField()` with `{ isOptional: true }`
+- [x] Add `@IsNullable()` decorator that calls `registerField()` with `{ isNullable: true }`
+- [x] Add `@Default(value: unknown)` decorator that calls `registerField()` with `{ defaultValue: value }`
+- [x] Add `@Transform(fn: (val: unknown) => unknown)` decorator that appends the transform function to the `transforms` array in `FieldMeta`
+- [x] Add `@Refine(check: (val: unknown) => unknown, opts?: { message?: string })` decorator that appends to the `refinements` array in `FieldMeta`
+- [x] Export all modifiers from `src/decorators/index.ts`
+- [x] Verify `pnpm build` passes
+- [x] Mark completed
 
 ### Task 5: Schema builder -- toZodSchema
 - [ ] Create `src/schema-builder.ts` with `toZodSchema<T>(cls: new (...args: unknown[]) => T): z.ZodObject<Record<string, z.ZodTypeAny>>`. Implementation: call `getFields(cls)`, iterate fields, for each field call `field.factory()` to get the base schema, then apply refinements via `.refine()`, transforms via `.transform()`, `.optional()` if `isOptional`, `.nullable()` if `isNullable`, `.default()` if `defaultValue` is set. Build shape object and return `z.object(shape)`
