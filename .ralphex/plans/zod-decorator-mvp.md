@@ -84,9 +84,9 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Mark completed
 
 ### Task 9: README
-- [ ] Write `README.md` with sections: project title and badges (npm, license, build), one-paragraph motivation (class-validator DX + Zod power), installation instructions (pnpm/npm/yarn), quick start example showing a decorated class with toZodSchema/validate
-- [ ] Add API reference section: table of all decorators with their options, toZodSchema/validate/validateSafe signatures, fromZodSchema signature and usage example
-- [ ] Add comparison section: side-by-side class-validator vs zod-decorator code
-- [ ] Add section on NestJS integration (future roadmap hint with createDto utility)
-- [ ] Add Contributing and License sections
-- [ ] Mark completed
+- [x] Write `README.md` with sections: project title and badges (npm, license, build), one-paragraph motivation (class-validator DX + Zod power), installation instructions (pnpm/npm/yarn), quick start example showing a decorated class with toZodSchema/validate
+- [x] Add API reference section: table of all decorators with their options, toZodSchema/validate/validateSafe signatures, fromZodSchema signature and usage example
+- [x] Add comparison section: side-by-side class-validator vs zod-decorator code
+- [x] Add section on NestJS integration (future roadmap hint with createDto utility)
+- [x] Add Contributing and License sections
+- [x] Mark completed
