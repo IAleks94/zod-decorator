@@ -19,14 +19,14 @@ describe("@IsEnum()", () => {
     expect(() => schema.parse({ e: "c" })).toThrow();
   });
 
-  it("rejects all values for empty string tuple", () => {
-    class C {
-      @IsEnum([] as const)
-      e!: string;
-    }
-    const schema = toZodSchema(C);
-    expect(() => schema.parse({ e: "a" })).toThrow();
-    expect(() => schema.parse({ e: "" })).toThrow();
+  it("throws when string tuple is empty", () => {
+    expect(() => {
+      class C {
+        @IsEnum([] as const)
+        e!: string;
+      }
+      void C;
+    }).toThrow(/empty string array/);
   });
 
   it("validates native TypeScript enums", () => {

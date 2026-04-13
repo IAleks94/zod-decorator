@@ -20,7 +20,7 @@ npm install zod-decorator zod reflect-metadata
 yarn add zod-decorator zod reflect-metadata
 ```
 
-Enable decorators in `tsconfig.json` (`experimentalDecorators` / `emitDecoratorMetadata` as required by your setup). Import `reflect-metadata` once at app entry (e.g. `import "reflect-metadata"`).
+Enable decorators in `tsconfig.json` (`experimentalDecorators` / `emitDecoratorMetadata` as required by your setup). Import `reflect-metadata` once at app entry (e.g. `import "reflect-metadata"`). **Zod** is a peer dependency: keep a single `zod` install in your app (see `peerDependencies` in this package).
 
 The package is **ESM** (`"type": "module"`). Use `import` syntax in Node and bundlers that support native ESM.
 
@@ -81,14 +81,14 @@ validate(User, { id: "1" });
 | `@IsNullable()` | Wraps field with `.nullable()`. | — |
 | `@Default(value)` | `.default(value)`. | `unknown` |
 | `@Transform(fn)` | Appends `schema.transform(fn)`. | `(val: unknown) => unknown` |
-| `@Refine(check, opts?)` | Appends `.refine` with optional `message`. | `check: (val: unknown) => unknown`, `opts?: { message?: string }` |
+| `@Refine(check, opts?)` | Appends `.refine` with optional `message`. | `check: (val: unknown) => boolean`, `opts?: { message?: string }` |
 
 ### Schema builders
 
 | Function | Signature | Notes |
 |----------|-----------|--------|
 | `toZodSchema` | `toZodSchema<T>(cls: new (...args: unknown[]) => T): z.ZodObject<Record<string, z.ZodTypeAny>>` | Builds `z.object` from class metadata. |
-| `validate` | `validate<T>(cls, data: unknown): T` | `toZodSchema(cls).parse(data)`. |
+| `validate` | `validate<T>(cls, data: unknown): T` | `toZodSchema(cls).parse(data)`. Throws `ZodError` with paths and input snippets; map or strip at trust boundaries before exposing to clients. |
 | `validateSafe` | `validateSafe<T>(cls, data: unknown): z.SafeParseReturnType<unknown, T>` | `toZodSchema(cls).safeParse(data)`. |
 | `fromZodSchema` | `fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(schema: T, name?: string): new () => z.infer<T>` | Generates a class with `registerField` metadata from an existing Zod object shape (optional unwrap of optional/nullable/default; nested objects). |
 
@@ -102,6 +102,7 @@ validate(User, { id: "1" });
 
 ### Behavior notes
 
+- **`@Refine` / `@Transform` pipeline:** For each field, `toZodSchema` runs **all** `.refine()` steps first (in registration order), then **all** `.transform()` steps (in registration order). It does not interleave them in source order; use Zod directly if you need a different chain order.
 - **`toZodSchema` and inheritance:** `getFields` walks the prototype chain; a subclass field with the same name as a parent **overrides** the parent’s metadata for that key.
 - **`@IsString` option order:** `trim` and case options run **before** `min` / `max` / `length` and format checks, so length counts the normalized string.
 - **`fromZodSchema` / `toZodSchema` roundtrip:** Classes produced by `fromZodSchema` store object-level options (`strict` / `passthrough` / `catchall`) in metadata and `toZodSchema` reapplies them; schemas built only from decorators still emit a plain `z.object(shape)` unless you set those options yourself. Field-level validations that live only on unsupported wrapper types (e.g. some `ZodEffects` chains) may not round-trip. **`ZodOptional` / `ZodNullable` / `ZodDefault`:** `fromZodSchema` records wrapper order (and default factories without evaluating them) so round-trip restores the same parse behavior; classes built only from decorators still apply optional / nullable / default in the fixed pipeline order documented for `toZodSchema`.
