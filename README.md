@@ -104,7 +104,7 @@ validate(User, { id: "1" });
 
 - **`toZodSchema` and inheritance:** `getFields` walks the prototype chain; a subclass field with the same name as a parent **overrides** the parent’s metadata for that key.
 - **`@IsString` option order:** `trim` and case options run **before** `min` / `max` / `length` and format checks, so length counts the normalized string.
-- **`fromZodSchema` / `toZodSchema` roundtrip:** Object-level settings on the original `z.object()` (e.g. `.strict()`, `.passthrough()`, `.catchall()`) are **not** preserved; the builder always emits a plain `z.object(shape)`. Field-level validations that live only on unsupported wrapper types (e.g. some `ZodEffects` chains) may not round-trip.
+- **`fromZodSchema` / `toZodSchema` roundtrip:** Classes produced by `fromZodSchema` store object-level options (`strict` / `passthrough` / `catchall`) in metadata and `toZodSchema` reapplies them; schemas built only from decorators still emit a plain `z.object(shape)` unless you set those options yourself. Field-level validations that live only on unsupported wrapper types (e.g. some `ZodEffects` chains) may not round-trip. **Wrapper order:** optional, nullable, and default are stored as flags and reapplied in a fixed order (`optional` → `nullable` → `default`), which may not match every Zod composition of those wrappers (e.g. `default` then `optional` vs the reverse).
 - **`@Refine`:** Refinement callbacks must be **synchronous**. Use Zod directly for async refinements (`parseAsync` / `superRefine`).
 
 ## class-validator vs zod-decorator

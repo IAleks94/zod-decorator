@@ -47,7 +47,16 @@ function mergeFieldMeta(existing: FieldMeta, partial: Partial<FieldMeta>): Field
   };
 }
 
-export function registerField(target: object, propertyKey: string, meta: Partial<FieldMeta>): void {
+export function registerField(
+  target: object,
+  propertyKey: string | symbol,
+  meta: Partial<FieldMeta>
+): void {
+  if (typeof propertyKey === "symbol") {
+    throw new Error(
+      "zod-decorator: symbol property keys are not supported; use string-keyed fields only."
+    );
+  }
   const ctor = target.constructor as new (...args: unknown[]) => unknown;
   const existingList = Reflect.getMetadata(SCHEMA_FIELDS, ctor) as FieldMeta[] | undefined;
   const list: FieldMeta[] = existingList ? [...existingList] : [];

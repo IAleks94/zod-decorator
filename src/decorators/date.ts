@@ -23,7 +23,7 @@ function buildDateSchema(opts?: IsDateOptions): z.ZodDate {
 
 export function IsDate(opts?: IsDateOptions): PropertyDecorator {
   return (target, propertyKey) => {
-    registerField(target, String(propertyKey), {
+    registerField(target, propertyKey, {
       factory: () => buildDateSchema(opts),
     });
   };

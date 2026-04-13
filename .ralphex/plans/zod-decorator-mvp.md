@@ -19,7 +19,7 @@ Task 9 README badges: npm, license, and TypeScript (no separate CI “build” b
 - [x] Mark completed
 
 ### Task 2: Metadata store
-- [x] Create `src/metadata.ts` with the `FieldMeta` interface containing: `propertyKey: string`, `factory: () => z.ZodTypeAny`, `isOptional: boolean`, `isNullable: boolean`, `defaultValue: unknown | undefined`, `transforms: Array<(schema: z.ZodTypeAny) => z.ZodTypeAny>`, `refinements: Array<{ check: (val: unknown) => unknown, message?: string }>`
+- [x] Create `src/metadata.ts` with the `FieldMeta` interface containing: `propertyKey: string`, `factory: () => z.ZodTypeAny`, `isOptional: boolean`, `isNullable: boolean`, `defaultValue: unknown | undefined`, `transforms: Array<(schema: z.ZodTypeAny) => z.ZodTypeAny>`, `refinements: Array<{ check: (val: unknown) => boolean, message?: string }>` (sync boolean predicates, matching Zod `refine`)
 - [x] Define `SCHEMA_FIELDS` as a unique Symbol key for storing metadata
 - [x] Define `SCHEMA_MARKER` as a unique Symbol key for `@Schema()` class marker
 - [x] Implement `registerField(target: object, propertyKey: string, meta: Partial<FieldMeta>)` that merges partial metadata into the existing `FieldMeta[]` array on the constructor using `Reflect.getMetadata` / `Reflect.defineMetadata`. If a field with the same `propertyKey` already exists, merge properties (not replace)

@@ -47,7 +47,7 @@ function buildNumberSchema(opts?: IsNumberOptions): z.ZodNumber {
 
 export function IsNumber(opts?: IsNumberOptions): PropertyDecorator {
   return (target, propertyKey) => {
-    registerField(target, String(propertyKey), {
+    registerField(target, propertyKey, {
       factory: () => buildNumberSchema(opts),
     });
   };

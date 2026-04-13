@@ -4,7 +4,7 @@ import { registerField } from "../metadata.js";
 
 export function IsEnum(values: readonly string[] | z.EnumLike): PropertyDecorator {
   return (target, propertyKey) => {
-    registerField(target, String(propertyKey), {
+    registerField(target, propertyKey, {
       factory: () => {
         if (Array.isArray(values)) {
           if (values.length === 0) {

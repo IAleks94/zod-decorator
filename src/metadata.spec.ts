@@ -3,6 +3,13 @@ import { z } from "zod";
 import { getFields, registerField } from "./metadata.js";
 
 describe("registerField", () => {
+  it("rejects symbol property keys", () => {
+    class A {}
+    expect(() =>
+      registerField(A.prototype, Symbol("x"), { factory: () => z.string() })
+    ).toThrow(/symbol property keys are not supported/);
+  });
+
   it("merges partial metadata for the same propertyKey instead of replacing the entry", () => {
     class A {}
     registerField(A.prototype, "x", { factory: () => z.string() });

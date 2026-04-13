@@ -29,7 +29,7 @@ function buildArraySchema(opts?: IsArrayOptions): z.ZodTypeAny {
 
 export function IsArray(opts?: IsArrayOptions): PropertyDecorator {
   return (target, propertyKey) => {
-    registerField(target, String(propertyKey), {
+    registerField(target, propertyKey, {
       factory: () => buildArraySchema(opts),
     });
   };

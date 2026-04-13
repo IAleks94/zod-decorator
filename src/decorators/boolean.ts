@@ -4,7 +4,7 @@ import { registerField } from "../metadata.js";
 
 export function IsBoolean(): PropertyDecorator {
   return (target, propertyKey) => {
-    registerField(target, String(propertyKey), {
+    registerField(target, propertyKey, {
       factory: () => z.boolean(),
     });
   };

@@ -7,7 +7,7 @@ export function Nested(
   classFn: () => new (...args: unknown[]) => unknown
 ): PropertyDecorator {
   return (target, propertyKey) => {
-    registerField(target, String(propertyKey), {
+    registerField(target, propertyKey, {
       factory: () =>
         z.lazy(() => toZodSchema(classFn())) as z.ZodTypeAny,
     });

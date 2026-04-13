@@ -35,7 +35,10 @@ function finalizeObjectSchema(
     } else if (meta.unknownKeys === "passthrough") {
       obj = obj.passthrough();
     }
-    if (meta.catchall._def.typeName !== "ZodNever") {
+    if (
+      meta.catchall != null &&
+      meta.catchall._def?.typeName !== "ZodNever"
+    ) {
       obj = obj.catchall(meta.catchall);
     }
   }

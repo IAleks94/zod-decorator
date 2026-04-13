@@ -63,7 +63,7 @@ function buildStringSchema(opts?: IsStringOptions): z.ZodString {
 
 export function IsString(opts?: IsStringOptions): PropertyDecorator {
   return (target, propertyKey) => {
-    registerField(target, String(propertyKey), {
+    registerField(target, propertyKey, {
       factory: () => buildStringSchema(opts),
     });
   };
