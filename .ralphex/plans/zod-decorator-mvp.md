@@ -15,14 +15,14 @@ Implement the zod-decorator library -- a TypeScript decorator-based wrapper arou
 - [x] Mark completed
 
 ### Task 2: Metadata store
-- [ ] Create `src/metadata.ts` with the `FieldMeta` interface containing: `propertyKey: string`, `factory: () => z.ZodTypeAny`, `isOptional: boolean`, `isNullable: boolean`, `defaultValue: unknown | undefined`, `transforms: Array<(schema: z.ZodTypeAny) => z.ZodTypeAny>`, `refinements: Array<{ check: (val: unknown) => unknown, message?: string }>`
-- [ ] Define `SCHEMA_FIELDS` as a unique Symbol key for storing metadata
-- [ ] Define `SCHEMA_MARKER` as a unique Symbol key for `@Schema()` class marker
-- [ ] Implement `registerField(target: object, propertyKey: string, meta: Partial<FieldMeta>)` that merges partial metadata into the existing `FieldMeta[]` array on the constructor using `Reflect.getMetadata` / `Reflect.defineMetadata`. If a field with the same `propertyKey` already exists, merge properties (not replace)
-- [ ] Implement `getFields(cls: new (...args: unknown[]) => unknown): FieldMeta[]` that reads metadata and walks the prototype chain to collect fields from parent classes, with child fields overriding parent fields of the same name
-- [ ] Export all from `src/metadata.ts`
-- [ ] Verify `pnpm build` passes
-- [ ] Mark completed
+- [x] Create `src/metadata.ts` with the `FieldMeta` interface containing: `propertyKey: string`, `factory: () => z.ZodTypeAny`, `isOptional: boolean`, `isNullable: boolean`, `defaultValue: unknown | undefined`, `transforms: Array<(schema: z.ZodTypeAny) => z.ZodTypeAny>`, `refinements: Array<{ check: (val: unknown) => unknown, message?: string }>`
+- [x] Define `SCHEMA_FIELDS` as a unique Symbol key for storing metadata
+- [x] Define `SCHEMA_MARKER` as a unique Symbol key for `@Schema()` class marker
+- [x] Implement `registerField(target: object, propertyKey: string, meta: Partial<FieldMeta>)` that merges partial metadata into the existing `FieldMeta[]` array on the constructor using `Reflect.getMetadata` / `Reflect.defineMetadata`. If a field with the same `propertyKey` already exists, merge properties (not replace)
+- [x] Implement `getFields(cls: new (...args: unknown[]) => unknown): FieldMeta[]` that reads metadata and walks the prototype chain to collect fields from parent classes, with child fields overriding parent fields of the same name
+- [x] Export all from `src/metadata.ts`
+- [x] Verify `pnpm build` passes
+- [x] Mark completed
 
 ### Task 3: Type decorators
 - [ ] Create `src/decorators/schema.ts` with `@Schema()` class decorator that sets `SCHEMA_MARKER` metadata on the class
