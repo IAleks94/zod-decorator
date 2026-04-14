@@ -10,7 +10,10 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "preversion": "pnpm test",
+    "version": "node scripts/sync-version.js && pnpm build && git add -A",
+    "postversion": "git push && git push --tags"
   },
   "keywords": [
     "zod",
