@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PKG_VERSION=$(node -p "require('./package.json').version")
+SRC_VERSION=$(node -p "require('fs').readFileSync('src/index.ts','utf-8').match(/VERSION = \"(.*?)\"/)[1]")
+
+if [ "$PKG_VERSION" != "$SRC_VERSION" ]; then
+  echo "Version mismatch: package.json=$PKG_VERSION, src/index.ts=$SRC_VERSION"
+  echo "Run: node scripts/sync-version.js"
+  exit 1
+fi

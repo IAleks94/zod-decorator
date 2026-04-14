@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
+    "prepare": "git config core.hooksPath .githooks",
     "preversion": "pnpm test",
     "version": "node scripts/sync-version.js && pnpm build && git add -A",
     "postversion": "git push && git push --tags"
