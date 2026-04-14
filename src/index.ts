@@ -1,4 +1,4 @@
-export const VERSION = "0.2.0";
+export const VERSION = "0.2.1";
 
 export * from "./decorators/index.js";
 export { toZodSchema, validate, validateSafe } from "./schema-builder.js";
