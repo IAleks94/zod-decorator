@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { z } from "zod";
-import { registerField } from "../metadata.js";
+import { registerField } from "../../metadata.js";
 
 export function IsOptional(): PropertyDecorator {
   return (target, propertyKey) => {

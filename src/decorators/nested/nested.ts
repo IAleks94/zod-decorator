@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { z } from "zod";
-import { registerField } from "../metadata.js";
-import { toZodSchema } from "../schema-builder.js";
+import { registerField } from "../../metadata.js";
+import { toZodSchema } from "../../schema-builder.js";
 
 export function Nested(
   classFn: () => new (...args: unknown[]) => unknown

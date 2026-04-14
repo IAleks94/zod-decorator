@@ -70,12 +70,12 @@ validate(User, { id: "1" });
 | Decorator | Description | Options |
 |----------------|-------------|---------|
 | `@Schema()` | Marks a class as a schema source (metadata marker). | — |
-| `@IsString(opts?)` | `z.string()` with refinements. | `min`, `max`, `length`, `email`, `url`, `uuid`, `regex`, `trim`, `toLowerCase`, `toUpperCase`, `startsWith`, `endsWith` |
-| `@IsNumber(opts?)` | `z.number()` chain. | `int`, `positive`, `negative`, `nonnegative`, `min`, `max`, `finite`, `multipleOf` |
-| `@IsBoolean()` | `z.boolean()`. | — |
-| `@IsDate(opts?)` | `z.date()`. | `min`, `max` (`Date`) |
-| `@IsEnum(values)` | String tuple or native enum via `z.enum` / `z.nativeEnum`. | `readonly string[]` or `z.EnumLike` |
-| `@IsArray(opts?)` | `z.array(...)`. | `items` (factory returning `z.ZodTypeAny`, default `z.unknown()`), `min`, `max`, `nonempty` |
+| `@IsString(opts?)` | `z.string()` with refinements. | `min`, `max`, `length`, `email`, `url`, `uuid`, `regex`, `trim`, `toLowerCase`, `toUpperCase`, `startsWith`, `endsWith`, `message` |
+| `@IsNumber(opts?)` | `z.number()` chain. | `int`, `positive`, `negative`, `nonnegative`, `min`, `max`, `finite`, `multipleOf`, `message` |
+| `@IsBoolean(opts?)` | `z.boolean()`. | `message` |
+| `@IsDate(opts?)` | `z.date()`. | `min`, `max` (`Date`), `message` |
+| `@IsEnum(values, opts?)` | String tuple or native enum via `z.enum` / `z.nativeEnum`. | `readonly string[]` or `z.EnumLike`; `opts`: `message` |
+| `@IsArray(opts?)` | `z.array(...)`. | `items` (factory returning `z.ZodTypeAny`, default `z.unknown()`), `min`, `max`, `nonempty`, `message` |
 | `@Nested(classFn)` | Nested object from another decorated class; `classFn` is `() => Constructor`. | — |
 | `@IsOptional()` | Wraps field with `.optional()`. | — |
 | `@IsNullable()` | Wraps field with `.nullable()`. | — |
@@ -98,7 +98,30 @@ validate(User, { id: "1" });
 |--------|-------------|
 | `VERSION` | Package version string (aligned with `package.json`). |
 
-`IsStringOptions`, `IsNumberOptions`, `IsDateOptions`, `IsArrayOptions`, and `FieldMeta` are exported for typing helpers.
+`IsStringOptions`, `IsNumberOptions`, `IsDateOptions`, `IsArrayOptions`, `IsBooleanOptions`, `IsEnumOptions`, and `FieldMeta` are exported for typing helpers. Per-constraint message types (`IsStringMessages`, `IsNumberMessages`, `IsDateMessages`, `IsArrayMessages`) are also exported.
+
+### Custom error messages
+
+Every type decorator accepts a `message` option to customize Zod error messages. Pass a string for the base type error, or an object to target individual constraints:
+
+```ts
+class SignupDto {
+  @IsString({
+    email: true,
+    min: 5,
+    message: { base: "Must be a string", email: "Invalid email", min: "Too short" },
+  })
+  email!: string;
+
+  @IsNumber({ positive: true, message: "Must be a number" })
+  age!: number;
+
+  @IsEnum(["admin", "user"] as const, { message: "Pick admin or user" })
+  role!: string;
+}
+```
+
+When `message` is a string, it applies to the base type check. When it is an object, each key maps to its constraint (e.g. `min`, `max`, `email`, `int`). The special `base` key in the object form sets the type-level error alongside per-constraint messages.
 
 ### Behavior notes
 

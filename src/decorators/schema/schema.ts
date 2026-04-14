@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { SCHEMA_MARKER } from "../metadata.js";
+import { SCHEMA_MARKER } from "../../metadata.js";
 
 export function Schema(): ClassDecorator {
   return (target) => {

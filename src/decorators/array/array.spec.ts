@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { IsArray } from "../array.js";
+import { IsArray } from "./array.js";
 import { toZodSchema } from "../../schema-builder.js";
 
 describe("@IsArray()", () => {
@@ -45,5 +45,50 @@ describe("@IsArray()", () => {
     const schema = toZodSchema(C);
     expect(schema.parse({ a: [1] })).toEqual({ a: [1] });
     expect(() => schema.parse({ a: [] })).toThrow();
+  });
+});
+
+describe("@IsArray() message", () => {
+  it("uses string message as base type error", () => {
+    class C {
+      @IsArray({ message: "not an array" })
+      a!: unknown[];
+    }
+    expect(() => toZodSchema(C).parse({ a: "nope" })).toThrow("not an array");
+  });
+
+  it("applies per-constraint messages", () => {
+    class C {
+      @IsArray({
+        min: 2,
+        max: 3,
+        message: { min: "need at least 2", max: "at most 3" },
+      })
+      a!: unknown[];
+    }
+    const schema = toZodSchema(C);
+    expect(() => schema.parse({ a: [1] })).toThrow("need at least 2");
+    expect(() => schema.parse({ a: [1, 2, 3, 4] })).toThrow("at most 3");
+  });
+
+  it("applies nonempty message", () => {
+    class C {
+      @IsArray({ nonempty: true, message: { nonempty: "cannot be empty" } })
+      a!: unknown[];
+    }
+    expect(() => toZodSchema(C).parse({ a: [] })).toThrow("cannot be empty");
+  });
+
+  it("uses base in object message for type error alongside constraint messages", () => {
+    class C {
+      @IsArray({
+        min: 2,
+        message: { base: "must be an array", min: "need at least 2" },
+      })
+      a!: unknown[];
+    }
+    const schema = toZodSchema(C);
+    expect(() => schema.parse({ a: "nope" })).toThrow("must be an array");
+    expect(() => schema.parse({ a: [1] })).toThrow("need at least 2");
   });
 });

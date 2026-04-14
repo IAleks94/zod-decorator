@@ -6,8 +6,8 @@ import {
   IsOptional,
   Refine,
   Transform,
-} from "../modifiers.js";
-import { IsString } from "../string.js";
+} from "./modifiers.js";
+import { IsString } from "../string/string.js";
 import { toZodSchema, validateSafe } from "../../schema-builder.js";
 
 describe("modifier decorators", () => {

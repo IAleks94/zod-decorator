@@ -8,7 +8,7 @@ import {
   IsString,
   Nested,
 } from "../decorators/index.js";
-import { Schema } from "../decorators/schema.js";
+import { Schema } from "../decorators/schema/schema.js";
 import { toZodSchema, validate, validateSafe } from "../schema-builder.js";
 
 describe("schema-builder unit", () => {

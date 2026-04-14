@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { describe, expect, it } from "vitest";
-import { IsString } from "../string.js";
-import { Nested } from "../nested.js";
+import { IsString } from "../string/string.js";
+import { Nested } from "./nested.js";
 import { toZodSchema } from "../../schema-builder.js";
 
 describe("@Nested()", () => {
