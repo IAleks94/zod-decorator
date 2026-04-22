@@ -95,6 +95,25 @@ describe("plainToInstance", () => {
     ).toThrow(/plainToInstance: maximum transform depth/);
   });
 
+  it("treats invalid maxDepth (NaN, negative) as the default so nesting still works", () => {
+    class Address {
+      @IsString()
+      street!: string;
+    }
+    class Profile {
+      @IsString()
+      name!: string;
+
+      @Nested(() => Address)
+      address!: Address;
+    }
+    const data = { name: "Ada", address: { street: "1" } };
+    for (const bad of [Number.NaN, -1] as const) {
+      const p = plainToInstance(Profile, data, { maxDepth: bad });
+      expect(p.address).toBeInstanceOf(Address);
+    }
+  });
+
   it("throws TypeError when data is not a plain object", () => {
     class User {
       @IsString()

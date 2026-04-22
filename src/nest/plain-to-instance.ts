@@ -2,8 +2,25 @@ import { getFields } from "../metadata.js";
 
 const DEFAULT_MAX_DEPTH = 512;
 
+function normalizeMaxDepth(maxDepth: number | undefined): number {
+  if (maxDepth === undefined) {
+    return DEFAULT_MAX_DEPTH;
+  }
+  if (maxDepth === Number.POSITIVE_INFINITY) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+  if (typeof maxDepth !== "number" || !Number.isFinite(maxDepth) || maxDepth < 0) {
+    return DEFAULT_MAX_DEPTH;
+  }
+  return maxDepth;
+}
+
 export interface PlainToInstanceOptions {
-  /** Max nested transform depth (each `@Nested` / array `elementClass` step counts). Default 512. */
+  /**
+   * Max nested transform depth (each `@Nested` / array `elementClass` step counts). Default 512.
+   * `Number.POSITIVE_INFINITY` is treated as effectively unlimited. Non-finite or negative
+   * values fall back to the default so depth checks cannot be bypassed (e.g. with `NaN`).
+   */
   maxDepth?: number;
 }
 
@@ -34,12 +51,7 @@ export function plainToInstance<T>(
   data: unknown,
   options?: PlainToInstanceOptions,
 ): T {
-  const cap =
-    options?.maxDepth === undefined
-      ? DEFAULT_MAX_DEPTH
-      : options.maxDepth === Number.POSITIVE_INFINITY
-        ? Number.MAX_SAFE_INTEGER
-        : options.maxDepth;
+  const cap = normalizeMaxDepth(options?.maxDepth);
   return plainToInstanceImpl(cls, data, 0, cap);
 }
 

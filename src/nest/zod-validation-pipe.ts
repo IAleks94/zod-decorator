@@ -42,7 +42,8 @@ export interface ZodValidationPipeOptions {
   transform?: boolean;
   /**
    * When `transform` is true, passed to `plainToInstance` to cap nesting depth (default 512).
-   * Increase for very deep DTO graphs; `Number.POSITIVE_INFINITY` disables the cap.
+   * `Number.POSITIVE_INFINITY` is effectively unlimited. Non-finite or negative values fall
+   * back to the same default as `plainToInstance`.
    */
   maxTransformDepth?: number;
   /**
@@ -88,11 +89,9 @@ export class ZodValidationPipe implements PipeTransform<unknown, unknown> {
       if (this.options.errorFactory) {
         const thrown = this.options.errorFactory(err);
         if (!(thrown instanceof Error)) {
-          throw new BadRequestException({
-            statusCode: 400,
-            message: "Validation failed",
-            errors: redactZodIssuesForResponse(err.issues),
-          });
+          throw new TypeError(
+            "ZodValidationPipe: errorFactory must return an Error (e.g. throw new BadRequestException(...))",
+          );
         }
         throw thrown;
       }
@@ -109,13 +108,16 @@ export class ZodValidationPipe implements PipeTransform<unknown, unknown> {
           maxDepth: this.options.maxTransformDepth,
         });
       } catch (e) {
-        if (e instanceof TypeError && (e as TypeError).message.startsWith("plainToInstance:")) {
+        if (e instanceof TypeError) {
           const msg = (e as TypeError).message;
+          const safeMsg = msg.startsWith("plainToInstance:")
+            ? msg
+            : "plainToInstance: transform failed";
           throw new BadRequestException({
             statusCode: 400,
             message: "Validation failed",
             errors: redactZodIssuesForResponse([
-              { code: "custom", path: [], message: msg } as ZodIssue,
+              { code: "custom", path: [], message: safeMsg } as ZodIssue,
             ]),
           });
         }

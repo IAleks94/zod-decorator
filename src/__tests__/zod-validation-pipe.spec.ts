@@ -250,7 +250,7 @@ describe("ZodValidationPipe", () => {
     expect((out as C).name).toBe("x");
   });
 
-  it("falls back to BadRequestException when errorFactory returns a non-Error", () => {
+  it("throws TypeError when errorFactory returns a non-Error", () => {
     class Dto {
       @IsString()
       name!: string;
@@ -258,12 +258,7 @@ describe("ZodValidationPipe", () => {
     const pipe = new ZodValidationPipe({
       errorFactory: () => undefined as unknown as Error,
     });
-    try {
-      pipe.transform({ name: 1 }, bodyMeta(Dto));
-      expect.fail("expected throw");
-    } catch (e) {
-      expect(e).toBeInstanceOf(BadRequestException);
-    }
+    expect(() => pipe.transform({ name: 1 }, bodyMeta(Dto))).toThrow(TypeError);
   });
 
   it("invokes custom errorFactory on validation failure", () => {

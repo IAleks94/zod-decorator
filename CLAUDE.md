@@ -33,7 +33,7 @@ Order applied to each field’s base schema from `factory()`:
 ## Nest (`src/nest/`)
 
 - `plainToInstance(cls, data)` uses `Object.create(cls.prototype)` + `Object.assign` (never `new cls()`), walks `getFields`, recurses for `nestedClass` / array `elementClass`, skips missing/`undefined`, preserves `null`, copies keys not in metadata (passthrough payloads), and throws if `data` is not a plain object.
-- `ZodValidationPipe` skips validation for primitive metatypes and undecorated classes (no fields and no `@Schema()`); caches `toZodSchema(metatype)` per constructor in a `WeakMap`; default failures use `redactZodIssuesForResponse` (strips `input` / `received` / `params` / `keys`) on Zod issues before responding; with `transform: true`, `TypeError` from `plainToInstance` becomes `BadRequestException`, and `maxTransformDepth` (default 512) caps `plainToInstance` nesting.
+- `ZodValidationPipe` skips validation for primitive metatypes and undecorated classes (no fields and no `@Schema()`); caches `toZodSchema(metatype)` per constructor in a `WeakMap`; default failures use `redactZodIssuesForResponse` (strips `input` / `received` / `params` / `keys`) on Zod issues before responding; `errorFactory` must return an `Error` or a `TypeError` is thrown; with `transform: true`, any `TypeError` from `plainToInstance` becomes `BadRequestException`, and `maxTransformDepth` (default 512; invalid values fall back to 512) caps `plainToInstance` nesting.
 
 ## Commands
 
