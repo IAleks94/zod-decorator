@@ -1,6 +1,6 @@
 import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from "@nestjs/common";
 import { z, type ZodError, type ZodIssue } from "zod";
-import { getFields, SCHEMA_MARKER } from "../metadata.js";
+import { getFields, hasSchemaMarkerInChain } from "../metadata.js";
 import { toZodSchema } from "../schema-builder.js";
 import { plainToInstance } from "./plain-to-instance.js";
 
@@ -9,12 +9,25 @@ const schemaCache = new WeakMap<
   z.ZodObject<Record<string, z.ZodTypeAny>, z.UnknownKeysParam, z.ZodTypeAny>
 >();
 
-/** Strips `input` / `received` from each issue for HTTP responses (avoids echoing raw request values). */
+function redactZodErrorSummary(err: z.ZodError): { issues: ZodIssue[] } {
+  return { issues: redactZodIssuesForResponse(err.issues) };
+}
+
+/** Strips `input` / `received` at every level, including inside `invalid_union` / nested `ZodError` graphs. */
 export function redactZodIssuesForResponse(issues: ZodIssue[]): ZodIssue[] {
   return issues.map((issue) => {
     const copy = { ...issue } as Record<string, unknown>;
     delete copy.input;
     delete copy.received;
+    if (Array.isArray(copy.unionErrors)) {
+      copy.unionErrors = (copy.unionErrors as z.ZodError[]).map((ue) => redactZodErrorSummary(ue));
+    }
+    if (copy.argumentsError instanceof z.ZodError) {
+      copy.argumentsError = redactZodErrorSummary(copy.argumentsError);
+    }
+    if (copy.returnTypeError instanceof z.ZodError) {
+      copy.returnTypeError = redactZodErrorSummary(copy.returnTypeError);
+    }
     return copy as unknown as ZodIssue;
   });
 }
@@ -48,8 +61,7 @@ export class ZodValidationPipe implements PipeTransform<unknown, unknown> {
     }
 
     const fields = getFields(metatype);
-    const hasSchemaMarker = Reflect.getMetadata(SCHEMA_MARKER, metatype) === true;
-    if (fields.length === 0 && !hasSchemaMarker) {
+    if (fields.length === 0 && !hasSchemaMarkerInChain(metatype)) {
       return value;
     }
 

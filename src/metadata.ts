@@ -136,6 +136,18 @@ export function registerField(
   Reflect.defineMetadata(SCHEMA_FIELDS, list, ctor);
 }
 
+/** True if this constructor or any ancestor (until `Object`) has `@Schema()`. Aligns with `getFields` prototype walk. */
+export function hasSchemaMarkerInChain(cls: new (...args: unknown[]) => unknown): boolean {
+  let ctor: Function | null = cls as Function;
+  while (ctor && ctor !== Object) {
+    if (Reflect.getMetadata(SCHEMA_MARKER, ctor) === true) {
+      return true;
+    }
+    ctor = Object.getPrototypeOf(ctor);
+  }
+  return false;
+}
+
 export function getFields(cls: new (...args: unknown[]) => unknown): FieldMeta[] {
   const map = new Map<string, FieldMeta>();
   const chain: Function[] = [];

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { BadRequestException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { describe, expect, it, vi, afterEach } from "vitest";
-import type { ZodError } from "zod";
+import { z, type ZodError } from "zod";
 import { IsArray, IsOptional, IsString, Nested, Schema } from "../decorators/index.js";
 import { ZodValidationPipe, redactZodIssuesForResponse } from "../nest/zod-validation-pipe.js";
 import * as schemaBuilder from "../schema-builder.js";
@@ -99,6 +99,24 @@ describe("ZodValidationPipe", () => {
     expect(pipe.transform({}, bodyMeta(EmptyDto))).toEqual({});
     expect(pipe.transform({ extra: 1 }, bodyMeta(EmptyDto))).toEqual({});
     expect(() => pipe.transform("nope", bodyMeta(EmptyDto))).toThrow(BadRequestException);
+  });
+
+  it("validates a subclass when @Schema() is only on the base class", () => {
+    @Schema()
+    class Base {}
+    class Sub extends Base {}
+    const pipe = new ZodValidationPipe();
+    expect(pipe.transform({}, bodyMeta(Sub))).toEqual({});
+    expect(() => pipe.transform("nope", bodyMeta(Sub))).toThrow(BadRequestException);
+  });
+
+  it("redactZodIssuesForResponse removes input/received from nested invalid_union errors", () => {
+    const result = z.union([z.string(), z.number()]).safeParse({ nested: "payload" });
+    expect(result.success).toBe(false);
+    const red = redactZodIssuesForResponse(result.error!.issues);
+    const s = JSON.stringify(red);
+    expect(s).not.toContain('"received"');
+    expect(s).not.toContain('"input"');
   });
 
   it("passes through primitive metatypes unchanged", () => {
