@@ -8,15 +8,15 @@ Add a NestJS-friendly subpath `@ialeks/zod-decorator/nest` that exports `ZodVali
 - `pnpm test`
 
 ### Task 1: Package scaffolding for subpath export
-- [ ] Add `@nestjs/common` (`^9 || ^10 || ^11`) and `rxjs` (`^7`) to `peerDependencies` in `package.json`
-- [ ] Add `peerDependenciesMeta` with `{ "optional": true }` for both peers
-- [ ] Add `@nestjs/common`, `@nestjs/core`, `@nestjs/testing`, `rxjs` to `devDependencies`
-- [ ] Replace `"main"` / `"types"` with an `"exports"` map exposing `.` (root) and `./nest` (dist/nest/index.js + .d.ts); keep `main` and `types` as legacy fallbacks pointing to `./dist/index.js` and `./dist/index.d.ts`
-- [ ] Add `"typesVersions": { "*": { "nest": ["./dist/nest/index.d.ts"] } }` for TS resolvers older than 4.7
-- [ ] Run `pnpm install` to regenerate `pnpm-lock.yaml`
-- [ ] Run `pnpm build` to verify root still compiles (no `src/nest/` yet)
-- [ ] Run `pnpm test` to verify existing tests still pass
-- [ ] Mark completed
+- [x] Add `@nestjs/common` (`^9 || ^10 || ^11`) and `rxjs` (`^7`) to `peerDependencies` in `package.json`
+- [x] Add `peerDependenciesMeta` with `{ "optional": true }` for both peers
+- [x] Add `@nestjs/common`, `@nestjs/core`, `@nestjs/testing`, `rxjs` to `devDependencies`
+- [x] Replace `"main"` / `"types"` with an `"exports"` map exposing `.` (root) and `./nest` (dist/nest/index.js + .d.ts); keep `main` and `types` as legacy fallbacks pointing to `./dist/index.js` and `./dist/index.d.ts`
+- [x] Add `"typesVersions": { "*": { "nest": ["./dist/nest/index.d.ts"] } }` for TS resolvers older than 4.7
+- [x] Run `pnpm install` to regenerate `pnpm-lock.yaml`
+- [x] Run `pnpm build` to verify root still compiles (no `src/nest/` yet)
+- [x] Run `pnpm test` to verify existing tests still pass
+- [x] Mark completed
 
 ### Task 2: Extend FieldMeta for plainToInstance hints
 - [ ] In `src/metadata.ts`, extend `FieldMeta` interface with optional `nestedClass?: () => new (...args: unknown[]) => unknown` and `elementClass?: () => new (...args: unknown[]) => unknown`

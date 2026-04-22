@@ -5,6 +5,21 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./nest": {
+      "import": "./dist/nest/index.js",
+      "types": "./dist/nest/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "nest": ["./dist/nest/index.d.ts"]
+    }
+  },
   "files": [
     "dist"
   ],
@@ -27,9 +42,23 @@
     "reflect-metadata": "^0.2.2"
   },
   "peerDependencies": {
-    "zod": "^3.24.1"
+    "zod": "^3.24.1",
+    "@nestjs/common": "^9 || ^10 || ^11",
+    "rxjs": "^7"
+  },
+  "peerDependenciesMeta": {
+    "@nestjs/common": {
+      "optional": true
+    },
+    "rxjs": {
+      "optional": true
+    }
   },
   "devDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/testing": "^11.0.0",
+    "rxjs": "^7.8.1",
     "typescript": "^5.7.2",
     "vitest": "^3.0.5",
     "zod": "^3.24.1"
