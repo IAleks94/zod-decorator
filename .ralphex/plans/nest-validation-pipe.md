@@ -28,13 +28,13 @@ Add a NestJS-friendly subpath `@ialeks/zod-decorator/nest` that exports `ZodVali
 - [x] Mark completed
 
 ### Task 3: Implement plainToInstance helper
-- [ ] Create `src/nest/plain-to-instance.ts` exporting `plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unknown): T`
-- [ ] Use `Object.create(cls.prototype)` + `Object.assign` (do not call `new cls()` to avoid required-arg constructors)
-- [ ] Iterate `getFields(cls)`; for fields with `nestedClass`, recurse into the value; for fields with `elementClass`, recurse into each array element; leave other fields as-is
-- [ ] Preserve `null`, skip `undefined`, keep plain primitives intact
-- [ ] Add `src/__tests__/plain-to-instance.spec.ts` covering: flat DTO → `instanceof`, `@Nested` → nested `instanceof`, array of `@Nested` → every element `instanceof`, DTO with required-args constructor does not throw, `null` value survives, missing optional fields survive
-- [ ] Run `pnpm build` and `pnpm test`
-- [ ] Mark completed
+- [x] Create `src/nest/plain-to-instance.ts` exporting `plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unknown): T`
+- [x] Use `Object.create(cls.prototype)` + `Object.assign` (do not call `new cls()` to avoid required-arg constructors)
+- [x] Iterate `getFields(cls)`; for fields with `nestedClass`, recurse into the value; for fields with `elementClass`, recurse into each array element; leave other fields as-is
+- [x] Preserve `null`, skip `undefined`, keep plain primitives intact
+- [x] Add `src/__tests__/plain-to-instance.spec.ts` covering: flat DTO → `instanceof`, `@Nested` → nested `instanceof`, array of `@Nested` → every element `instanceof`, DTO with required-args constructor does not throw, `null` value survives, missing optional fields survive
+- [x] Run `pnpm build` and `pnpm test`
+- [x] Mark completed
 
 ### Task 4: Implement ZodValidationPipe
 - [ ] Create `src/nest/zod-validation-pipe.ts` with `ZodValidationPipeOptions { transform?: boolean; errorFactory?: (error: ZodError) => Error }` and `ZodValidationPipe implements PipeTransform<unknown>`
