@@ -29,7 +29,7 @@ export function IsArray(opts?: IsArrayOptions): PropertyDecorator {
   return (target, propertyKey) => {
     registerField(target, propertyKey, {
       factory: () => buildArraySchema(opts),
-      ...(opts?.elementClass ? { elementClass: opts.elementClass } : {}),
+      ...(opts?.elementClass && !opts?.items ? { elementClass: opts.elementClass } : {}),
     });
   };
 }

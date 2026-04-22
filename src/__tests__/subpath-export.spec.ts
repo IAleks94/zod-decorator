@@ -9,8 +9,8 @@ const root = join(__dirname, "../..");
 const distNestIndex = join(root, "dist/nest/index.js");
 const hasDistNest = existsSync(distNestIndex);
 
-describe.skipIf(!hasDistNest)("subpath export", () => {
-  it("package.json exports map and typesVersions for root and ./nest", async () => {
+describe("subpath export (package.json)", () => {
+  it("exports map and typesVersions for root and ./nest", async () => {
     const raw = await readFile(join(root, "package.json"), "utf-8");
     const pkg = JSON.parse(raw) as {
       exports: Record<string, { import: string; types: string }>;
@@ -22,11 +22,14 @@ describe.skipIf(!hasDistNest)("subpath export", () => {
     expect(pkg.exports["./nest"].types).toBe("./dist/nest/index.d.ts");
     expect(pkg.typesVersions["*"].nest[0]).toBe("./dist/nest/index.d.ts");
   });
+});
 
+describe.skipIf(!hasDistNest)("subpath export (built dist)", () => {
   it("dynamic import of built nest barrel exposes ZodValidationPipe and plainToInstance", async () => {
     const mod = await import("../../dist/nest/index.js");
     expect(typeof mod.ZodValidationPipe).toBe("function");
     expect(mod.ZodValidationPipe.prototype).toBeDefined();
     expect(typeof mod.plainToInstance).toBe("function");
+    expect(typeof mod.redactZodIssuesForResponse).toBe("function");
   });
 });

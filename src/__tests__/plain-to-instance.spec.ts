@@ -78,6 +78,27 @@ describe("plainToInstance", () => {
     expect(r.extra).toBeNull();
   });
 
+  it("throws TypeError when data is not a plain object", () => {
+    class User {
+      @IsString()
+      name!: string;
+    }
+    expect(() => plainToInstance(User, null)).toThrow(TypeError);
+    expect(() => plainToInstance(User, undefined)).toThrow(TypeError);
+    expect(() => plainToInstance(User, [])).toThrow(TypeError);
+    expect(() => plainToInstance(User, "x")).toThrow(TypeError);
+  });
+
+  it("copies extra keys not declared on the class (passthrough payloads)", () => {
+    class User {
+      @IsString()
+      name!: string;
+    }
+    const u = plainToInstance(User, { name: "Ada", traceId: "t1" }) as User & { traceId?: string };
+    expect(u.name).toBe("Ada");
+    expect(u.traceId).toBe("t1");
+  });
+
   it("leaves missing optional properties unset", () => {
     class User {
       @IsOptional()

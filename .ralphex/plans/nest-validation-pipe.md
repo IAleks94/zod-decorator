@@ -1,5 +1,7 @@
 # Plan: NestJS ValidationPipe subpath export
 
+**Status:** Completed (2026-04-22).
+
 ## Overview
 Add a NestJS-friendly subpath `@ialeks/zod-decorator/nest` that exports `ZodValidationPipe` and `plainToInstance`, so decorated DTO classes can replace `class-validator + class-transformer` inside Nest controllers. The root entry (`@ialeks/zod-decorator`) stays Nest-free; `@nestjs/common` and `rxjs` are optional peer dependencies.
 

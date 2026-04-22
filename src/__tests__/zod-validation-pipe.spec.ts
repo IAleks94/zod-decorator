@@ -3,8 +3,8 @@ import { BadRequestException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { describe, expect, it, vi, afterEach } from "vitest";
 import type { ZodError } from "zod";
-import { IsArray, IsOptional, IsString, Nested } from "../decorators/index.js";
-import { ZodValidationPipe } from "../nest/zod-validation-pipe.js";
+import { IsArray, IsOptional, IsString, Nested, Schema } from "../decorators/index.js";
+import { ZodValidationPipe, redactZodIssuesForResponse } from "../nest/zod-validation-pipe.js";
 import * as schemaBuilder from "../schema-builder.js";
 
 function bodyMeta(metatype: object | undefined): import("@nestjs/common").ArgumentMetadata {
@@ -64,7 +64,7 @@ describe("ZodValidationPipe", () => {
       };
       expect(res.statusCode).toBe(400);
       expect(res.message).toBe("Validation failed");
-      expect(res.errors).toEqual(issues);
+      expect(res.errors).toEqual(redactZodIssuesForResponse(issues));
     }
   });
 
@@ -84,6 +84,21 @@ describe("ZodValidationPipe", () => {
       };
       expect(res.errors[0]?.message).toBe("must be text");
     }
+  });
+
+  it("passes through when metatype is undefined", () => {
+    const pipe = new ZodValidationPipe();
+    const raw = { any: 1 };
+    expect(pipe.transform(raw, { type: "body", metatype: undefined, data: "" })).toBe(raw);
+  });
+
+  it("validates @Schema() class with no field decorators (Zod strips unknown keys)", () => {
+    @Schema()
+    class EmptyDto {}
+    const pipe = new ZodValidationPipe();
+    expect(pipe.transform({}, bodyMeta(EmptyDto))).toEqual({});
+    expect(pipe.transform({ extra: 1 }, bodyMeta(EmptyDto))).toEqual({});
+    expect(() => pipe.transform("nope", bodyMeta(EmptyDto))).toThrow(BadRequestException);
   });
 
   it("passes through primitive metatypes unchanged", () => {
@@ -164,6 +179,22 @@ describe("ZodValidationPipe", () => {
     const out = pipe.transform({ name: "x" }, bodyMeta(C));
     expect(out).toBeInstanceOf(C);
     expect((out as C).name).toBe("x");
+  });
+
+  it("falls back to BadRequestException when errorFactory returns a non-Error", () => {
+    class Dto {
+      @IsString()
+      name!: string;
+    }
+    const pipe = new ZodValidationPipe({
+      errorFactory: () => undefined as unknown as Error,
+    });
+    try {
+      pipe.transform({ name: 1 }, bodyMeta(Dto));
+      expect.fail("expected throw");
+    } catch (e) {
+      expect(e).toBeInstanceOf(BadRequestException);
+    }
   });
 
   it("invokes custom errorFactory on validation failure", () => {

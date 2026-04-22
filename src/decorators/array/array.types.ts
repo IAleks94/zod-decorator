@@ -9,7 +9,11 @@ export interface IsArrayMessages {
 
 export interface IsArrayOptions {
   items?: () => z.ZodTypeAny;
-  /** When set (and `items` is omitted), element schema is built from `toZodSchema(elementClass())` (lazy). */
+  /**
+   * When set and `items` is omitted, element schema is built from `toZodSchema(elementClass())` (lazy),
+   * and `elementClass` is stored for `plainToInstance` / `ZodValidationPipe({ transform: true })`.
+   * If `items` is set, it alone defines the element type; `elementClass` is ignored.
+   */
   elementClass?: () => new (...args: unknown[]) => unknown;
   min?: number;
   max?: number;

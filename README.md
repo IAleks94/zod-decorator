@@ -75,7 +75,7 @@ validate(User, { id: "1" });
 | `@IsBoolean(opts?)` | `z.boolean()`. | `message` |
 | `@IsDate(opts?)` | `z.date()`. | `min`, `max` (`Date`), `message` |
 | `@IsEnum(values, opts?)` | String tuple or native enum via `z.enum` / `z.nativeEnum`. | `readonly string[]` or `z.EnumLike`; `opts`: `message` |
-| `@IsArray(opts?)` | `z.array(...)`. | `items` (factory returning `z.ZodTypeAny`, default `z.unknown()`), `min`, `max`, `nonempty`, `message` |
+| `@IsArray(opts?)` | `z.array(...)`. | `items` (factory returning `z.ZodTypeAny`, default `z.unknown()`), `elementClass` (lazy class ctor when `items` is omitted — for nested DTO arrays + Nest `transform`; ignored if `items` is set), `min`, `max`, `nonempty`, `message` |
 | `@Nested(classFn)` | Nested object from another decorated class; `classFn` is `() => Constructor`. | — |
 | `@IsOptional()` | Wraps field with `.optional()`. | — |
 | `@IsNullable()` | Wraps field with `.nullable()`. | — |
@@ -91,6 +91,17 @@ validate(User, { id: "1" });
 | `validate` | `validate<T>(cls, data: unknown): T` | `toZodSchema(cls).parse(data)`. Throws `ZodError` with paths and input snippets; map or strip at trust boundaries before exposing to clients. |
 | `validateSafe` | `validateSafe<T>(cls, data: unknown): z.SafeParseReturnType<unknown, T>` | `toZodSchema(cls).safeParse(data)`. |
 | `fromZodSchema` | `fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(schema: T, name?: string): new () => z.infer<T>` | Generates a class with `registerField` metadata from an existing Zod object shape (optional unwrap of optional/nullable/default; nested objects). |
+
+### Nest subpath (`@ialeks/zod-decorator/nest`)
+
+Import only from `@ialeks/zod-decorator` (root) or `@ialeks/zod-decorator/nest` — these match `package.json` `exports`; avoid deep imports from `dist/`.
+
+| Export | Role |
+|--------|------|
+| `ZodValidationPipe` | Nest `PipeTransform` using `safeParse` + optional `plainToInstance` when `transform: true`. |
+| `ZodValidationPipeOptions` | `transform?`, `errorFactory?(error: ZodError) => Error` (prefer `HttpException` for correct HTTP status). |
+| `plainToInstance` | Builds class instances from plain objects using field metadata (same helper the pipe uses when `transform: true`). |
+| `redactZodIssuesForResponse` | Strips `input` / `received` from Zod issues (default pipe errors use this; reuse in custom `errorFactory` if you spread issues). |
 
 ### Constants
 
@@ -189,6 +200,10 @@ pnpm add @ialeks/zod-decorator zod reflect-metadata @nestjs/common rxjs
 ```
 
 Wire validation globally or per route. Use `transform: true` when you want body/query DTO properties to be real class instances (including nested DTOs), similar to `ValidationPipe`’s `transform` option.
+
+**Passthrough (no Zod run):** `metadata.metatype` is missing, or is `String` / `Number` / `Boolean` / `Array` / `Object`, the value is returned unchanged. If the metatype is a class with **no** registered fields and **no** `@Schema()` marker, the value is returned unchanged. Otherwise the pipe runs `safeParse` and throws `BadRequestException` on failure. A class with `@Schema()` but no `@Is*` fields still validates as an empty Zod object (unknown keys are stripped by default, same as `z.object({})`).
+
+**Error bodies:** the default `BadRequestException` response includes `errors` with Zod issue metadata but **without** `input` / `received`, so raw request values are not echoed. Use `redactZodIssuesForResponse` in a custom `errorFactory` if you build your own payload from `error.issues`.
 
 ```ts
 import "reflect-metadata";

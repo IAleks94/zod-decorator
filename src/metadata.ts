@@ -88,9 +88,15 @@ function mergeFieldMeta(existing: FieldMeta, partial: Partial<FieldMeta>): Field
     defaultValue: Object.prototype.hasOwnProperty.call(partial, "defaultValue")
       ? partial.defaultValue
       : existing.defaultValue,
-    wrapperChain: partial.wrapperChain !== undefined ? partial.wrapperChain : existing.wrapperChain,
-    nestedClass: partial.nestedClass !== undefined ? partial.nestedClass : existing.nestedClass,
-    elementClass: partial.elementClass !== undefined ? partial.elementClass : existing.elementClass,
+    wrapperChain: Object.prototype.hasOwnProperty.call(partial, "wrapperChain")
+      ? partial.wrapperChain
+      : existing.wrapperChain,
+    nestedClass: Object.prototype.hasOwnProperty.call(partial, "nestedClass")
+      ? partial.nestedClass
+      : existing.nestedClass,
+    elementClass: Object.prototype.hasOwnProperty.call(partial, "elementClass")
+      ? partial.elementClass
+      : existing.elementClass,
     transforms: [...existing.transforms, ...(partial.transforms ?? [])],
     refinements: [...existing.refinements, ...(partial.refinements ?? [])],
   };

@@ -44,7 +44,7 @@ describe("@IsArray()", () => {
     expect(meta.elementClass!()).toBe(Item);
   });
 
-  it("keeps explicit items when both items and elementClass are set", () => {
+  it("ignores elementClass metadata when items is set (items is the single source of truth)", () => {
     class Item {
       @IsString()
       id!: string;
@@ -56,7 +56,7 @@ describe("@IsArray()", () => {
     const schema = toZodSchema(C);
     expect(schema.parse({ a: ["x"] })).toEqual({ a: ["x"] });
     expect(() => schema.parse({ a: [{}] })).toThrow();
-    expect(getFields(C).find((f) => f.propertyKey === "a")!.elementClass!()).toBe(Item);
+    expect(getFields(C).find((f) => f.propertyKey === "a")!.elementClass).toBeUndefined();
   });
 
   it("enforces min and max length", () => {
