@@ -1,11 +1,20 @@
 import "reflect-metadata";
 import { z } from "zod";
 import { registerField } from "../../metadata.js";
+import { toZodSchema } from "../../schema-builder.js";
 import { createMsgResolver, resolveBaseMsg } from "../utils/message.js";
 import type { IsArrayOptions } from "./array.types.js";
 
 function buildArraySchema(opts?: IsArrayOptions): z.ZodTypeAny {
-  const inner = opts?.items ? opts.items() : z.unknown();
+  let inner: z.ZodTypeAny;
+  if (opts?.items) {
+    inner = opts.items();
+  } else if (opts?.elementClass) {
+    const elementClass = opts.elementClass;
+    inner = z.lazy(() => toZodSchema(elementClass())) as z.ZodTypeAny;
+  } else {
+    inner = z.unknown();
+  }
   let schema: z.ZodTypeAny = z.array(inner, resolveBaseMsg(opts?.message));
   if (!opts) return schema;
   const msg = createMsgResolver(opts.message);
@@ -20,6 +29,7 @@ export function IsArray(opts?: IsArrayOptions): PropertyDecorator {
   return (target, propertyKey) => {
     registerField(target, propertyKey, {
       factory: () => buildArraySchema(opts),
+      ...(opts?.elementClass ? { elementClass: opts.elementClass } : {}),
     });
   };
 }

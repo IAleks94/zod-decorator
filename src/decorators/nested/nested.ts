@@ -10,6 +10,7 @@ export function Nested(
     registerField(target, propertyKey, {
       factory: () =>
         z.lazy(() => toZodSchema(classFn())) as z.ZodTypeAny,
+      nestedClass: classFn,
     });
   };
 }

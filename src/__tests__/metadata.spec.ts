@@ -100,3 +100,72 @@ describe("getFields", () => {
     expect(fields.map((f) => f.propertyKey)).toContain("onlyParent");
   });
 });
+
+describe("FieldMeta nestedClass / elementClass", () => {
+  it("preserves nestedClass when merging without replacing factory", () => {
+    class Nested {}
+    const thunk = () => Nested;
+    class A {}
+    registerField(A.prototype, "x", { factory: () => z.object({}), nestedClass: thunk });
+    registerField(A.prototype, "x", { isOptional: true });
+    const x = getFields(A).find((f) => f.propertyKey === "x")!;
+    expect(x.nestedClass).toBe(thunk);
+  });
+
+  it("preserves elementClass when merging without replacing factory", () => {
+    class El {}
+    const thunk = () => El;
+    class A {}
+    registerField(A.prototype, "xs", { factory: () => z.array(z.unknown()), elementClass: thunk });
+    registerField(A.prototype, "xs", { isNullable: true });
+    const f = getFields(A).find((k) => k.propertyKey === "xs")!;
+    expect(f.elementClass).toBe(thunk);
+  });
+
+  it("preserves nestedClass when factory is replaced if partial omits nestedClass", () => {
+    class N {}
+    const thunk = () => N;
+    class A {}
+    registerField(A.prototype, "x", { factory: () => z.string(), nestedClass: thunk });
+    registerField(A.prototype, "x", { factory: () => z.number() });
+    const x = getFields(A).find((f) => f.propertyKey === "x")!;
+    expect(x.nestedClass).toBe(thunk);
+    expect(x.factory().parse(1)).toBe(1);
+  });
+
+  it("inherits parent nestedClass and lets child override for the same key", () => {
+    class N1 {}
+    class N2 {}
+    const t1 = () => N1;
+    const t2 = () => N2;
+    class Parent {}
+    class Child extends Parent {}
+    registerField(Parent.prototype, "x", { factory: () => z.string(), nestedClass: t1 });
+    registerField(Child.prototype, "x", { factory: () => z.number(), nestedClass: t2 });
+    const childX = getFields(Child).find((f) => f.propertyKey === "x")!;
+    expect(childX.nestedClass).toBe(t2);
+  });
+
+  it("inherits parent elementClass via getFields on child", () => {
+    class E {}
+    const thunk = () => E;
+    class Parent {}
+    class Child extends Parent {}
+    registerField(Parent.prototype, "items", { factory: () => z.array(z.unknown()), elementClass: thunk });
+    const items = getFields(Child).find((f) => f.propertyKey === "items")!;
+    expect(items.elementClass).toBe(thunk);
+  });
+
+  it("child overrides parent elementClass for the same key", () => {
+    class E1 {}
+    class E2 {}
+    const t1 = () => E1;
+    const t2 = () => E2;
+    class Parent {}
+    class Child extends Parent {}
+    registerField(Parent.prototype, "items", { factory: () => z.array(z.unknown()), elementClass: t1 });
+    registerField(Child.prototype, "items", { factory: () => z.array(z.number()), elementClass: t2 });
+    const items = getFields(Child).find((f) => f.propertyKey === "items")!;
+    expect(items.elementClass).toBe(t2);
+  });
+});

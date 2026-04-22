@@ -19,6 +19,10 @@ export interface FieldMeta {
    * `isOptional` / `isNullable` / `defaultValue` in a fixed pipeline order instead.
    */
   wrapperChain?: FieldWrapperStep[];
+  /** Constructor thunk for `@Nested` — used by `plainToInstance` to instantiate nested DTOs. */
+  nestedClass?: () => new (...args: unknown[]) => unknown;
+  /** Element constructor thunk for `@IsArray({ elementClass })` — used by `plainToInstance` for array elements. */
+  elementClass?: () => new (...args: unknown[]) => unknown;
   transforms: Array<(schema: z.ZodTypeAny) => z.ZodTypeAny>;
   /** Sync predicates only; async checks are not supported (use parseAsync on the raw schema if needed). */
   refinements: Array<{ check: (val: unknown) => boolean; message?: string }>;
@@ -61,6 +65,12 @@ function mergeFieldMeta(existing: FieldMeta, partial: Partial<FieldMeta>): Field
       wrapperChain: Object.prototype.hasOwnProperty.call(partial, "wrapperChain")
         ? partial.wrapperChain
         : existing.wrapperChain,
+      nestedClass: Object.prototype.hasOwnProperty.call(partial, "nestedClass")
+        ? partial.nestedClass
+        : existing.nestedClass,
+      elementClass: Object.prototype.hasOwnProperty.call(partial, "elementClass")
+        ? partial.elementClass
+        : existing.elementClass,
       transforms: Object.prototype.hasOwnProperty.call(partial, "transforms")
         ? partial.transforms!
         : [...existing.transforms],
@@ -79,6 +89,8 @@ function mergeFieldMeta(existing: FieldMeta, partial: Partial<FieldMeta>): Field
       ? partial.defaultValue
       : existing.defaultValue,
     wrapperChain: partial.wrapperChain !== undefined ? partial.wrapperChain : existing.wrapperChain,
+    nestedClass: partial.nestedClass !== undefined ? partial.nestedClass : existing.nestedClass,
+    elementClass: partial.elementClass !== undefined ? partial.elementClass : existing.elementClass,
     transforms: [...existing.transforms, ...(partial.transforms ?? [])],
     refinements: [...existing.refinements, ...(partial.refinements ?? [])],
   };

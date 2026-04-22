@@ -19,13 +19,13 @@ Add a NestJS-friendly subpath `@ialeks/zod-decorator/nest` that exports `ZodVali
 - [x] Mark completed
 
 ### Task 2: Extend FieldMeta for plainToInstance hints
-- [ ] In `src/metadata.ts`, extend `FieldMeta` interface with optional `nestedClass?: () => new (...args: unknown[]) => unknown` and `elementClass?: () => new (...args: unknown[]) => unknown`
-- [ ] Update `defaultFieldMeta` and `mergeFieldMeta` in `src/metadata.ts` to preserve the two new fields across registrations (similar to how `wrapperChain` is handled)
-- [ ] In `src/decorators/nested/nested.ts`, pass `nestedClass: classFn` to `registerField` so `@Nested(() => Child)` records the constructor thunk
-- [ ] In `src/decorators/array/array.ts`, accept an optional form of `options.items` that returns a decorated class constructor (e.g. via an `elementClass` factory or a marker), and pass `elementClass` to `registerField` while keeping the existing `items: () => z.ZodTypeAny` form working unchanged
-- [ ] Add unit assertions in `src/__tests__/metadata.spec.ts` that `nestedClass` / `elementClass` survive merging and inheritance via `getFields`
-- [ ] Run `pnpm build` and `pnpm test`; all existing `schema-builder` / `schema-from-zod` / `edge-cases` specs must still pass unchanged
-- [ ] Mark completed
+- [x] In `src/metadata.ts`, extend `FieldMeta` interface with optional `nestedClass?: () => new (...args: unknown[]) => unknown` and `elementClass?: () => new (...args: unknown[]) => unknown`
+- [x] Update `defaultFieldMeta` and `mergeFieldMeta` in `src/metadata.ts` to preserve the two new fields across registrations (similar to how `wrapperChain` is handled)
+- [x] In `src/decorators/nested/nested.ts`, pass `nestedClass: classFn` to `registerField` so `@Nested(() => Child)` records the constructor thunk
+- [x] In `src/decorators/array/array.ts`, accept an optional form of `options.items` that returns a decorated class constructor (e.g. via an `elementClass` factory or a marker), and pass `elementClass` to `registerField` while keeping the existing `items: () => z.ZodTypeAny` form working unchanged
+- [x] Add unit assertions in `src/__tests__/metadata.spec.ts` that `nestedClass` / `elementClass` survive merging and inheritance via `getFields`
+- [x] Run `pnpm build` and `pnpm test`; all existing `schema-builder` / `schema-from-zod` / `edge-cases` specs must still pass unchanged
+- [x] Mark completed
 
 ### Task 3: Implement plainToInstance helper
 - [ ] Create `src/nest/plain-to-instance.ts` exporting `plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unknown): T`
