@@ -78,6 +78,23 @@ describe("plainToInstance", () => {
     expect(r.extra).toBeNull();
   });
 
+  it("throws TypeError when maxDepth does not allow nested transforms", () => {
+    class Address {
+      @IsString()
+      street!: string;
+    }
+    class Profile {
+      @IsString()
+      name!: string;
+
+      @Nested(() => Address)
+      address!: Address;
+    }
+    expect(() =>
+      plainToInstance(Profile, { name: "Ada", address: { street: "1" } }, { maxDepth: 0 }),
+    ).toThrow(/plainToInstance: maximum transform depth/);
+  });
+
   it("throws TypeError when data is not a plain object", () => {
     class User {
       @IsString()

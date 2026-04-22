@@ -1,5 +1,12 @@
 import { getFields } from "../metadata.js";
 
+const DEFAULT_MAX_DEPTH = 512;
+
+export interface PlainToInstanceOptions {
+  /** Max nested transform depth (each `@Nested` / array `elementClass` step counts). Default 512. */
+  maxDepth?: number;
+}
+
 /** Keys that must not be copied onto instances via `Object.assign` (prototype / constructor hazards). */
 function isUnsafeAssignKey(key: string): boolean {
   return key === "__proto__" || key === "constructor" || key === "prototype";
@@ -20,9 +27,31 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * skipped; `null` is preserved. Extra keys not declared on the class (e.g. from
  * Zod `.passthrough()`) are copied onto the instance.
  *
- * @throws TypeError if `data` is not a plain object (including `null` and arrays).
+ * @throws TypeError if `data` is not a plain object (including `null` and arrays), if nesting exceeds `options.maxDepth`, or on shape mismatch for nested/array metadata.
  */
-export function plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unknown): T {
+export function plainToInstance<T>(
+  cls: new (...args: unknown[]) => T,
+  data: unknown,
+  options?: PlainToInstanceOptions,
+): T {
+  const cap =
+    options?.maxDepth === undefined
+      ? DEFAULT_MAX_DEPTH
+      : options.maxDepth === Number.POSITIVE_INFINITY
+        ? Number.MAX_SAFE_INTEGER
+        : options.maxDepth;
+  return plainToInstanceImpl(cls, data, 0, cap);
+}
+
+function plainToInstanceImpl<T>(
+  cls: new (...args: unknown[]) => T,
+  data: unknown,
+  depth: number,
+  maxDepth: number,
+): T {
+  if (depth > maxDepth) {
+    throw new TypeError("plainToInstance: maximum transform depth exceeded");
+  }
   if (!isPlainObject(data)) {
     const kind =
       data === null
@@ -69,7 +98,7 @@ export function plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unk
           `plainToInstance: expected plain object for nested field "${String(key)}", got ${kind}`,
         );
       }
-      acc[key] = plainToInstance(Nested, value) as unknown;
+      acc[key] = plainToInstanceImpl(Nested, value, depth + 1, maxDepth) as unknown;
       continue;
     }
     if (field.elementClass) {
@@ -90,7 +119,7 @@ export function plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unk
           return el;
         }
         if (isPlainObject(el)) {
-          return plainToInstance(Elem, el) as unknown;
+          return plainToInstanceImpl(Elem, el, depth + 1, maxDepth) as unknown;
         }
         const kind =
           el !== null && typeof el === "object"

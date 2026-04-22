@@ -3,4 +3,4 @@ export {
   type ZodValidationPipeOptions,
   redactZodIssuesForResponse,
 } from "./zod-validation-pipe.js";
-export { plainToInstance } from "./plain-to-instance.js";
+export { plainToInstance, type PlainToInstanceOptions } from "./plain-to-instance.js";

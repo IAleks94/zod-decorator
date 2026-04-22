@@ -130,6 +130,14 @@ describe("ZodValidationPipe", () => {
     expect(JSON.stringify(red)).not.toContain("leak");
   });
 
+  it("redactZodIssuesForResponse removes keys from unrecognized_keys (strict object) issues", () => {
+    const result = z.object({ a: z.string() }).strict().safeParse({ a: "x", probeKey: 1 });
+    expect(result.success).toBe(false);
+    const red = redactZodIssuesForResponse(result.error!.issues);
+    const s = JSON.stringify(red);
+    expect(s).not.toContain("probeKey");
+  });
+
   it("passes through primitive metatypes unchanged", () => {
     const pipe = new ZodValidationPipe();
     expect(pipe.transform("hi", bodyMeta(String))).toBe("hi");
@@ -157,6 +165,38 @@ describe("ZodValidationPipe", () => {
     const out = pipe.transform({ name: "Ada" }, bodyMeta(Dto));
     expect(out).toBeInstanceOf(Dto);
     expect((out as Dto).name).toBe("Ada");
+  });
+
+  it("with transform: true and maxTransformDepth 0, nested transform throws BadRequestException (not 500)", () => {
+    class Address {
+      @IsString()
+      street!: string;
+    }
+    class Profile {
+      @IsString()
+      name!: string;
+
+      @Nested(() => Address)
+      address!: Address;
+    }
+    const pipe = new ZodValidationPipe({ transform: true, maxTransformDepth: 0 });
+    try {
+      pipe.transform(
+        { name: "Ada", address: { street: "1 Main" } },
+        bodyMeta(Profile)
+      );
+      expect.fail("expected throw");
+    } catch (e) {
+      expect(e).toBeInstanceOf(BadRequestException);
+      const res = (e as BadRequestException).getResponse() as {
+        statusCode: number;
+        message: string;
+        errors: { message: string }[];
+      };
+      expect(res.statusCode).toBe(400);
+      expect(res.message).toBe("Validation failed");
+      expect(res.errors[0]?.message).toMatch(/^plainToInstance:/);
+    }
   });
 
   it("with transform: true, @Nested field is instanceof nested class", () => {

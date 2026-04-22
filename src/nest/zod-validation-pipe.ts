@@ -13,13 +13,18 @@ function redactZodErrorSummary(err: z.ZodError): z.ZodError {
   return new z.ZodError(redactZodIssuesForResponse(err.issues));
 }
 
-/** Strips `input` / `received` at every level, including inside `invalid_union` / nested `ZodError` graphs. */
+/** Strips `input` / `received` / `params` / `keys` at every level, including inside `invalid_union` / nested `ZodError` graphs. */
 export function redactZodIssuesForResponse(issues: ZodIssue[]): ZodIssue[] {
   return issues.map((issue) => {
     const copy = { ...issue } as Record<string, unknown>;
     delete copy.input;
     delete copy.received;
     delete copy.params;
+    // `unrecognized_keys` issues list client property names in `keys` and often in `message`.
+    if (copy.code === "unrecognized_keys") {
+      delete copy.keys;
+      copy.message = "Unrecognized key(s) in object";
+    }
     if (Array.isArray(copy.unionErrors)) {
       copy.unionErrors = (copy.unionErrors as z.ZodError[]).map((ue) => redactZodErrorSummary(ue));
     }
@@ -35,6 +40,11 @@ export function redactZodIssuesForResponse(issues: ZodIssue[]): ZodIssue[] {
 
 export interface ZodValidationPipeOptions {
   transform?: boolean;
+  /**
+   * When `transform` is true, passed to `plainToInstance` to cap nesting depth (default 512).
+   * Increase for very deep DTO graphs; `Number.POSITIVE_INFINITY` disables the cap.
+   */
+  maxTransformDepth?: number;
   /**
    * Return an `Error` to throw on validation failure. Prefer an `HttpException` from
    * `@nestjs/common` (e.g. `BadRequestException`) so clients get the intended status code;
@@ -94,7 +104,23 @@ export class ZodValidationPipe implements PipeTransform<unknown, unknown> {
     }
 
     if (this.options.transform) {
-      return plainToInstance(metatype, parsed.data);
+      try {
+        return plainToInstance(metatype, parsed.data, {
+          maxDepth: this.options.maxTransformDepth,
+        });
+      } catch (e) {
+        if (e instanceof TypeError && (e as TypeError).message.startsWith("plainToInstance:")) {
+          const msg = (e as TypeError).message;
+          throw new BadRequestException({
+            statusCode: 400,
+            message: "Validation failed",
+            errors: redactZodIssuesForResponse([
+              { code: "custom", path: [], message: msg } as ZodIssue,
+            ]),
+          });
+        }
+        throw e;
+      }
     }
     return parsed.data;
   }
