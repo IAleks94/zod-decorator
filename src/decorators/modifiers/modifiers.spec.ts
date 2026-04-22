@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { z } from "zod";
 import { describe, expect, it } from "vitest";
 import {
   Default,
@@ -9,6 +10,7 @@ import {
 } from "./modifiers.js";
 import { IsString } from "../string/string.js";
 import { toZodSchema, validateSafe } from "../../schema-builder.js";
+import { fromZodSchema } from "../../schema-from-zod.js";
 
 describe("modifier decorators", () => {
   it("@IsOptional() allows undefined", () => {
@@ -81,6 +83,41 @@ describe("modifier decorators", () => {
         true
       );
     }
+  });
+
+  it("@Default(undefined) produces a ZodDefault with undefined default", () => {
+    class C {
+      @Default(undefined)
+      @IsOptional()
+      @IsString()
+      s?: string;
+    }
+    const schema = toZodSchema(C);
+    expect(schema.shape.s).toBeInstanceOf(z.ZodDefault);
+    expect(schema.parse({})).toEqual({ s: undefined });
+    expect(schema.parse({ s: "x" })).toEqual({ s: "x" });
+  });
+
+  it("subclass @IsOptional does not double-wrap a fromZodSchema default+optional field", () => {
+    const baseSchema = z.object({
+      a: z.string().optional().default("x"),
+    });
+    const Base = fromZodSchema(baseSchema, "OptDefaultBase");
+
+    class Extended extends Base {
+      @IsOptional()
+      a?: string;
+    }
+
+    const rebuilt = toZodSchema(Extended);
+    // Before the fix, the outer `ZodDefault` bypassed the `instanceof ZodOptional` guard and an
+    // extra `.optional()` was appended on top of the existing `ZodDefault(ZodOptional(...))`.
+    const fieldSchema = rebuilt.shape.a;
+    expect(fieldSchema).toBeInstanceOf(z.ZodDefault);
+    // The default must still fire on `{}` (would be lost if wrapped again as `ZodOptional(ZodDefault(...))`
+    // because the outer optional short-circuits to `undefined`).
+    expect(rebuilt.parse({})).toEqual({ a: "x" });
+    expect(rebuilt.parse({ a: "y" })).toEqual({ a: "y" });
   });
 
   it("composes optional + nullable + default", () => {

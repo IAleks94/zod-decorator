@@ -4,10 +4,16 @@ import { getFields, hasSchemaMarkerInChain } from "../metadata.js";
 import { toZodSchema } from "../schema-builder.js";
 import { plainToInstance } from "./plain-to-instance.js";
 
+// Module-level cache shared across every `ZodValidationPipe` instance. This is safe because the
+// derived schema is a pure function of the metatype — pipe `options` (transform, errorFactory,
+// maxTransformDepth) don't influence schema construction. Keyed by constructor, so two pipes with
+// different options for the same DTO still reuse the same Zod object.
 const schemaCache = new WeakMap<
   new (...args: unknown[]) => unknown,
   z.ZodObject<Record<string, z.ZodTypeAny>, z.UnknownKeysParam, z.ZodTypeAny>
 >();
+
+const PRIMITIVE_METATYPES: ReadonlyArray<unknown> = [String, Number, Boolean, Array, Object];
 
 function redactZodErrorSummary(err: z.ZodError): z.ZodError {
   return new z.ZodError(redactZodIssuesForResponse(err.issues));
@@ -61,14 +67,7 @@ export class ZodValidationPipe implements PipeTransform<unknown, unknown> {
   transform(value: unknown, metadata: ArgumentMetadata): unknown {
     const metatype = metadata.metatype as (new (...args: unknown[]) => unknown) | undefined;
 
-    if (
-      metatype === undefined ||
-      metatype === String ||
-      metatype === Number ||
-      metatype === Boolean ||
-      metatype === Array ||
-      metatype === Object
-    ) {
+    if (metatype === undefined || PRIMITIVE_METATYPES.includes(metatype)) {
       return value;
     }
 

@@ -24,7 +24,11 @@ export interface PlainToInstanceOptions {
   maxDepth?: number;
 }
 
-/** Keys that must not be copied onto instances via `Object.assign` (prototype / constructor hazards). */
+/**
+ * Keys that must not be copied onto instances via `Object.assign` (prototype / constructor hazards).
+ * This guards extra keys coming from client payloads (e.g. Zod `.passthrough()`); metadata-declared
+ * field names are already blocked at `registerField` time.
+ */
 function isUnsafeAssignKey(key: string): boolean {
   return key === "__proto__" || key === "constructor" || key === "prototype";
 }
@@ -35,6 +39,19 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   }
   const proto = Object.getPrototypeOf(value);
   return proto === Object.prototype || proto === null;
+}
+
+function describeKind(value: unknown): string {
+  if (value === null) {
+    return "null";
+  }
+  if (Array.isArray(value)) {
+    return "array";
+  }
+  if (typeof value === "object") {
+    return (value as object).constructor?.name ?? "object";
+  }
+  return typeof value;
 }
 
 /**
@@ -65,25 +82,15 @@ function plainToInstanceImpl<T>(
     throw new TypeError("plainToInstance: maximum transform depth exceeded");
   }
   if (!isPlainObject(data)) {
-    const kind =
-      data === null
-        ? "null"
-        : Array.isArray(data)
-          ? "array"
-          : data !== null && typeof data === "object"
-            ? (data as object).constructor?.name ?? "object"
-            : typeof data;
-    throw new TypeError(`plainToInstance: expected a plain object, got ${kind}`);
+    throw new TypeError(`plainToInstance: expected a plain object, got ${describeKind(data)}`);
   }
-  const acc: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
+  const acc: Record<string, unknown> = Object.create({}) as Record<string, unknown>;
   const plain = data;
   const fields = getFields(cls);
   const fieldKeys = new Set(fields.map((f) => f.propertyKey));
   for (const field of fields) {
     const key = field.propertyKey;
-    if (isUnsafeAssignKey(String(key))) {
-      continue;
-    }
+    // Metadata keys are validated in `registerField`, so no unsafe-key check is needed here.
     if (!Object.prototype.hasOwnProperty.call(plain, key)) {
       continue;
     }
@@ -98,16 +105,8 @@ function plainToInstanceImpl<T>(
     if (field.nestedClass) {
       const Nested = field.nestedClass();
       if (!isPlainObject(value)) {
-        const kind =
-          value === null
-            ? "null"
-            : Array.isArray(value)
-              ? "array"
-              : value !== null && typeof value === "object"
-                ? (value as object).constructor?.name ?? "object"
-                : typeof value;
         throw new TypeError(
-          `plainToInstance: expected plain object for nested field "${String(key)}", got ${kind}`,
+          `plainToInstance: expected plain object for nested field "${String(key)}", got ${describeKind(value)}`,
         );
       }
       acc[key] = plainToInstanceImpl(Nested, value, depth + 1, maxDepth) as unknown;
@@ -116,14 +115,8 @@ function plainToInstanceImpl<T>(
     if (field.elementClass) {
       const Elem = field.elementClass();
       if (!Array.isArray(value)) {
-        const kind =
-          value === null
-            ? "null"
-            : value !== null && typeof value === "object"
-              ? (value as object).constructor?.name ?? "object"
-              : typeof value;
         throw new TypeError(
-          `plainToInstance: expected array for field "${String(key)}", got ${kind}`,
+          `plainToInstance: expected array for field "${String(key)}", got ${describeKind(value)}`,
         );
       }
       acc[key] = value.map((el, i) => {
@@ -133,12 +126,8 @@ function plainToInstanceImpl<T>(
         if (isPlainObject(el)) {
           return plainToInstanceImpl(Elem, el, depth + 1, maxDepth) as unknown;
         }
-        const kind =
-          el !== null && typeof el === "object"
-            ? (el as object).constructor?.name ?? "object"
-            : typeof el;
         throw new TypeError(
-          `plainToInstance: expected plain object for "${String(key)}[${i}]", got ${kind}`,
+          `plainToInstance: expected plain object for "${String(key)}[${i}]", got ${describeKind(el)}`,
         );
       });
       continue;

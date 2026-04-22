@@ -17,6 +17,15 @@ describe("registerField", () => {
     ).toThrow(/symbol property keys are not supported/);
   });
 
+  it("rejects unsafe property keys to prevent prototype pollution", () => {
+    class A {}
+    for (const key of ["__proto__", "constructor", "prototype"]) {
+      expect(() =>
+        registerField(A.prototype, key, { factory: () => z.string() })
+      ).toThrow(/unsafe property key/);
+    }
+  });
+
   it("merges partial metadata for the same propertyKey instead of replacing the entry", () => {
     class A {}
     registerField(A.prototype, "x", { factory: () => z.string() });
