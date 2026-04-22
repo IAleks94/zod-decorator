@@ -57,10 +57,8 @@ export function fromZodSchema<T extends z.ZodObject<z.ZodRawShape>>(
 
   const shape = schema.shape;
 
-  for (const key of Reflect.ownKeys(shape)) {
-    if (typeof key !== "string") {
-      continue;
-    }
+  // Zod object shapes are keyed by strings only, so `Object.keys` is exhaustive here.
+  for (const key of Object.keys(shape)) {
     const fieldSchema = shape[key]!;
     const { inner, wrapperChain } = unwrapFieldSchema(fieldSchema);
 

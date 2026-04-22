@@ -1,0 +1,128 @@
+import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from "@nestjs/common";
+import { z, type ZodError, type ZodIssue } from "zod";
+import { getFields, hasSchemaMarkerInChain } from "../metadata.js";
+import { toZodSchema } from "../schema-builder.js";
+import { plainToInstance } from "./plain-to-instance.js";
+
+// Module-level cache shared across every `ZodValidationPipe` instance. This is safe because the
+// derived schema is a pure function of the metatype — pipe `options` (transform, errorFactory,
+// maxTransformDepth) don't influence schema construction. Keyed by constructor, so two pipes with
+// different options for the same DTO still reuse the same Zod object.
+const schemaCache = new WeakMap<
+  new (...args: unknown[]) => unknown,
+  z.ZodObject<Record<string, z.ZodTypeAny>, z.UnknownKeysParam, z.ZodTypeAny>
+>();
+
+const PRIMITIVE_METATYPES: ReadonlyArray<unknown> = [String, Number, Boolean, Array, Object];
+
+function redactZodErrorSummary(err: z.ZodError): z.ZodError {
+  return new z.ZodError(redactZodIssuesForResponse(err.issues));
+}
+
+/** Strips `input` / `received` / `params` / `keys` at every level, including inside `invalid_union` / nested `ZodError` graphs. */
+export function redactZodIssuesForResponse(issues: ZodIssue[]): ZodIssue[] {
+  return issues.map((issue) => {
+    const copy = { ...issue } as Record<string, unknown>;
+    delete copy.input;
+    delete copy.received;
+    delete copy.params;
+    // `unrecognized_keys` issues list client property names in `keys` and often in `message`.
+    if (copy.code === "unrecognized_keys") {
+      delete copy.keys;
+      copy.message = "Unrecognized key(s) in object";
+    }
+    if (Array.isArray(copy.unionErrors)) {
+      copy.unionErrors = (copy.unionErrors as z.ZodError[]).map((ue) => redactZodErrorSummary(ue));
+    }
+    if (copy.argumentsError instanceof z.ZodError) {
+      copy.argumentsError = redactZodErrorSummary(copy.argumentsError);
+    }
+    if (copy.returnTypeError instanceof z.ZodError) {
+      copy.returnTypeError = redactZodErrorSummary(copy.returnTypeError);
+    }
+    return copy as unknown as ZodIssue;
+  });
+}
+
+export interface ZodValidationPipeOptions {
+  transform?: boolean;
+  /**
+   * When `transform` is true, passed to `plainToInstance` to cap nesting depth (default 512).
+   * `Number.POSITIVE_INFINITY` is effectively unlimited. Non-finite or negative values fall
+   * back to the same default as `plainToInstance`.
+   */
+  maxTransformDepth?: number;
+  /**
+   * Return an `Error` to throw on validation failure. Prefer an `HttpException` from
+   * `@nestjs/common` (e.g. `BadRequestException`) so clients get the intended status code;
+   * a plain `Error` may surface as 500 unless you map it elsewhere.
+   */
+  errorFactory?: (error: ZodError) => Error;
+}
+
+@Injectable()
+export class ZodValidationPipe implements PipeTransform<unknown, unknown> {
+  constructor(private readonly options: ZodValidationPipeOptions = {}) {}
+
+  transform(value: unknown, metadata: ArgumentMetadata): unknown {
+    const metatype = metadata.metatype as (new (...args: unknown[]) => unknown) | undefined;
+
+    if (metatype === undefined || PRIMITIVE_METATYPES.includes(metatype)) {
+      return value;
+    }
+
+    const fields = getFields(metatype);
+    if (fields.length === 0 && !hasSchemaMarkerInChain(metatype)) {
+      return value;
+    }
+
+    let schema = schemaCache.get(metatype);
+    if (!schema) {
+      schema = toZodSchema(metatype);
+      schemaCache.set(metatype, schema);
+    }
+
+    const parsed = schema.safeParse(value);
+    if (!parsed.success) {
+      const err = parsed.error;
+      if (this.options.errorFactory) {
+        const thrown = this.options.errorFactory(err);
+        if (!(thrown instanceof Error)) {
+          throw new TypeError(
+            "ZodValidationPipe: errorFactory must return an Error (e.g. throw new BadRequestException(...))",
+          );
+        }
+        throw thrown;
+      }
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "Validation failed",
+        errors: redactZodIssuesForResponse(err.issues),
+      });
+    }
+
+    if (this.options.transform) {
+      try {
+        return plainToInstance(metatype, parsed.data, {
+          maxDepth: this.options.maxTransformDepth,
+        });
+      } catch (e) {
+        if (e instanceof TypeError) {
+          const msg = (e as TypeError).message;
+          const safeMsg = msg.startsWith("plainToInstance:")
+            ? msg
+            : "plainToInstance: transform failed";
+          throw new BadRequestException({
+            statusCode: 400,
+            message: "Validation failed",
+            errors: redactZodIssuesForResponse([
+              { code: "custom", path: [], message: safeMsg } as ZodIssue,
+            ]),
+          });
+        }
+        throw e;
+      }
+    }
+    return parsed.data;
+  }
+}

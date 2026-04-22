@@ -4,6 +4,7 @@
 
 - Library sources live under `src/`; tests are `*.spec.ts` (Vitest) and are excluded from `tsc` via `tsconfig.json`, so `dist/` ships only library code.
 - Entry point: `src/index.ts` re-exports decorators, `toZodSchema` / `validate` / `validateSafe`, `fromZodSchema`, `VERSION`, and `FieldMeta`.
+- `src/nest/` compiles to `dist/nest/` and is exposed only via the package subpath `@ialeks/zod-decorator/nest` (`exports["./nest"]`); `@nestjs/common` and `rxjs` are optional peer dependencies for consumers of that entry.
 
 ## Runtime requirements
 
@@ -15,6 +16,7 @@
 - `registerField` stores `FieldMeta` on the **constructor** via `Reflect.defineMetadata(SCHEMA_FIELDS, ...)`.
 - `getFields(cls)` walks the prototype chain (child constructors after parents) and merges fields; same `propertyKey` on a child overrides the parent.
 - `SCHEMA_MARKER` / `@Schema()` is a **marker** only; the runtime does not require it for `toZodSchema` (it is for documentation and convention).
+- `FieldMeta.nestedClass` / `elementClass`: optional constructor thunks for Nest `plainToInstance` — set by `@Nested` and `@IsArray({ elementClass })` when `items` is omitted; merged like other metadata (including `hasOwnProperty` clears in `mergeFieldMeta`).
 
 ## Per-field pipeline (`applyFieldMeta`)
 
@@ -27,6 +29,11 @@ Order applied to each field’s base schema from `factory()`:
 ## `@Nested` and cycles
 
 - Nested object fields use `z.lazy(() => toZodSchema(classFn()))` so mutually nested classes do not overflow the stack during schema construction.
+
+## Nest (`src/nest/`)
+
+- `plainToInstance(cls, data)` uses `Object.create(cls.prototype)` + `Object.assign` (never `new cls()`), walks `getFields`, recurses for `nestedClass` / array `elementClass`, skips missing/`undefined`, preserves `null`, copies keys not in metadata (passthrough payloads), and throws if `data` is not a plain object.
+- `ZodValidationPipe` skips validation for primitive metatypes and undecorated classes (no fields and no `@Schema()`); caches `toZodSchema(metatype)` per constructor in a `WeakMap`; default failures use `redactZodIssuesForResponse` (strips `input` / `received` / `params` / `keys`) on Zod issues before responding; `errorFactory` must return an `Error` or a `TypeError` is thrown; with `transform: true`, any `TypeError` from `plainToInstance` becomes `BadRequestException`, and `maxTransformDepth` (default 512; invalid values fall back to 512) caps `plainToInstance` nesting.
 
 ## Commands
 

@@ -2,6 +2,8 @@ import "reflect-metadata";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { IsArray } from "./array.js";
+import { IsString } from "../string/string.js";
+import { getFields } from "../../metadata.js";
 import { toZodSchema } from "../../schema-builder.js";
 
 describe("@IsArray()", () => {
@@ -23,6 +25,38 @@ describe("@IsArray()", () => {
     const schema = toZodSchema(C);
     expect(schema.parse({ a: ["x", "y"] })).toEqual({ a: ["x", "y"] });
     expect(() => schema.parse({ a: [1] })).toThrow();
+  });
+
+  it("uses elementClass for element typing and registers elementClass metadata", () => {
+    class Item {
+      @IsString()
+      id!: string;
+    }
+    class C {
+      @IsArray({ elementClass: () => Item })
+      a!: Item[];
+    }
+    const schema = toZodSchema(C);
+    expect(schema.parse({ a: [{ id: "x" }] })).toEqual({ a: [{ id: "x" }] });
+    expect(() => schema.parse({ a: [{ id: 1 }] })).toThrow();
+    const meta = getFields(C).find((f) => f.propertyKey === "a")!;
+    expect(meta.elementClass).toBeDefined();
+    expect(meta.elementClass!()).toBe(Item);
+  });
+
+  it("ignores elementClass metadata when items is set (items is the single source of truth)", () => {
+    class Item {
+      @IsString()
+      id!: string;
+    }
+    class C {
+      @IsArray({ items: () => z.string(), elementClass: () => Item })
+      a!: string[];
+    }
+    const schema = toZodSchema(C);
+    expect(schema.parse({ a: ["x"] })).toEqual({ a: ["x"] });
+    expect(() => schema.parse({ a: [{}] })).toThrow();
+    expect(getFields(C).find((f) => f.propertyKey === "a")!.elementClass).toBeUndefined();
   });
 
   it("enforces min and max length", () => {
