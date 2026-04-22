@@ -37,15 +37,15 @@ Add a NestJS-friendly subpath `@ialeks/zod-decorator/nest` that exports `ZodVali
 - [x] Mark completed
 
 ### Task 4: Implement ZodValidationPipe
-- [ ] Create `src/nest/zod-validation-pipe.ts` with `ZodValidationPipeOptions { transform?: boolean; errorFactory?: (error: ZodError) => Error }` and `ZodValidationPipe implements PipeTransform<unknown>`
-- [ ] In `transform(value, metadata)`: return `value` unchanged when `metadata.metatype` is undefined or one of `String | Number | Boolean | Array | Object`
-- [ ] Skip (return value) when `getFields(metatype)` is empty and `SCHEMA_MARKER` metadata is absent
-- [ ] Cache `toZodSchema(metatype)` in a module-level `WeakMap<Constructor, ZodObject>` so the same metatype does not rebuild the schema per request
-- [ ] On `safeParse` failure, throw `errorFactory(error)` when provided, otherwise `new BadRequestException({ statusCode: 400, message: "Validation failed", errors: error.issues })`
-- [ ] When `transform: true`, return `plainToInstance(metatype, parsed)`; otherwise return `parsed`
-- [ ] Add `src/__tests__/zod-validation-pipe.spec.ts` using `@nestjs/testing` with: success path, failure → `BadRequestException` with `message === "Validation failed"` and `errors === error.issues` (message strings from `@IsString({ message })` preserved verbatim), primitive `metatype` passthrough, undecorated class passthrough, `transform: true` → root `instanceof DTO`, `transform: true` → nested `@Nested` `instanceof`, `transform: true` → array of `@Nested` elements all `instanceof`, `transform: true` on DTO with required-args constructor does not throw, custom `errorFactory` is invoked, schema cache returns the same reference across calls on one class
-- [ ] Run `pnpm build` and `pnpm test`
-- [ ] Mark completed
+- [x] Create `src/nest/zod-validation-pipe.ts` with `ZodValidationPipeOptions { transform?: boolean; errorFactory?: (error: ZodError) => Error }` and `ZodValidationPipe implements PipeTransform<unknown>`
+- [x] In `transform(value, metadata)`: return `value` unchanged when `metadata.metatype` is undefined or one of `String | Number | Boolean | Array | Object`
+- [x] Skip (return value) when `getFields(metatype)` is empty and `SCHEMA_MARKER` metadata is absent
+- [x] Cache `toZodSchema(metatype)` in a module-level `WeakMap<Constructor, ZodObject>` so the same metatype does not rebuild the schema per request
+- [x] On `safeParse` failure, throw `errorFactory(error)` when provided, otherwise `new BadRequestException({ statusCode: 400, message: "Validation failed", errors: error.issues })`
+- [x] When `transform: true`, return `plainToInstance(metatype, parsed)`; otherwise return `parsed`
+- [x] Add `src/__tests__/zod-validation-pipe.spec.ts` using `@nestjs/testing` with: success path, failure → `BadRequestException` with `message === "Validation failed"` and `errors === error.issues` (message strings from `@IsString({ message })` preserved verbatim), primitive `metatype` passthrough, undecorated class passthrough, `transform: true` → root `instanceof DTO`, `transform: true` → nested `@Nested` `instanceof`, `transform: true` → array of `@Nested` elements all `instanceof`, `transform: true` on DTO with required-args constructor does not throw, custom `errorFactory` is invoked, schema cache returns the same reference across calls on one class
+- [x] Run `pnpm build` and `pnpm test`
+- [x] Mark completed
 
 ### Task 5: Wire up nest barrel and verify subpath export
 - [ ] Create `src/nest/index.ts` exporting `ZodValidationPipe`, `ZodValidationPipeOptions`, `plainToInstance`
