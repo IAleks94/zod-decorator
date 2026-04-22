@@ -100,6 +100,20 @@ describe("plainToInstance", () => {
     expect(u.traceId).toBe("t1");
   });
 
+  it("ignores __proto__ / constructor / prototype keys so instanceof stays correct", () => {
+    class User {
+      @IsString()
+      name!: string;
+    }
+    const payload = JSON.parse(
+      '{"name":"Ada","__proto__":{"polluted":true},"constructor":{"x":1},"prototype":{"y":2}}',
+    ) as Record<string, unknown>;
+    const u = plainToInstance(User, payload);
+    expect(u).toBeInstanceOf(User);
+    expect((u as User & { polluted?: unknown }).polluted).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(u, "__proto__")).toBe(false);
+  });
+
   it("leaves missing optional properties unset", () => {
     class User {
       @IsOptional()

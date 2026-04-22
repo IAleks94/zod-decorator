@@ -19,6 +19,7 @@ export function redactZodIssuesForResponse(issues: ZodIssue[]): ZodIssue[] {
     const copy = { ...issue } as Record<string, unknown>;
     delete copy.input;
     delete copy.received;
+    delete copy.params;
     if (Array.isArray(copy.unionErrors)) {
       copy.unionErrors = (copy.unionErrors as z.ZodError[]).map((ue) => redactZodErrorSummary(ue));
     }

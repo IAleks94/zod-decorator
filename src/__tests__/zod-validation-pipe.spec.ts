@@ -119,6 +119,17 @@ describe("ZodValidationPipe", () => {
     expect(s).not.toContain('"input"');
   });
 
+  it("redactZodIssuesForResponse removes params from custom issues", () => {
+    const schema = z.string().superRefine((_val, ctx) => {
+      ctx.addIssue({ code: "custom", message: "nope", params: { secretPayload: "leak" } });
+    });
+    const result = schema.safeParse("");
+    expect(result.success).toBe(false);
+    const red = redactZodIssuesForResponse(result.error!.issues);
+    expect(JSON.stringify(red)).not.toContain("secretPayload");
+    expect(JSON.stringify(red)).not.toContain("leak");
+  });
+
   it("passes through primitive metatypes unchanged", () => {
     const pipe = new ZodValidationPipe();
     expect(pipe.transform("hi", bodyMeta(String))).toBe("hi");

@@ -1,5 +1,10 @@
 import { getFields } from "../metadata.js";
 
+/** Keys that must not be copied onto instances via `Object.assign` (prototype / constructor hazards). */
+function isUnsafeAssignKey(key: string): boolean {
+  return key === "__proto__" || key === "constructor" || key === "prototype";
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     return false;
@@ -35,6 +40,9 @@ export function plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unk
   const fieldKeys = new Set(fields.map((f) => f.propertyKey));
   for (const field of fields) {
     const key = field.propertyKey;
+    if (isUnsafeAssignKey(String(key))) {
+      continue;
+    }
     if (!Object.prototype.hasOwnProperty.call(plain, key)) {
       continue;
     }
@@ -48,33 +56,58 @@ export function plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unk
     }
     if (field.nestedClass) {
       const Nested = field.nestedClass();
-      if (isPlainObject(value)) {
-        acc[key] = plainToInstance(Nested, value) as unknown;
-      } else {
-        acc[key] = value;
+      if (!isPlainObject(value)) {
+        const kind =
+          value === null
+            ? "null"
+            : Array.isArray(value)
+              ? "array"
+              : value !== null && typeof value === "object"
+                ? (value as object).constructor?.name ?? "object"
+                : typeof value;
+        throw new TypeError(
+          `plainToInstance: expected plain object for nested field "${String(key)}", got ${kind}`,
+        );
       }
+      acc[key] = plainToInstance(Nested, value) as unknown;
       continue;
     }
     if (field.elementClass) {
       const Elem = field.elementClass();
-      if (Array.isArray(value)) {
-        acc[key] = value.map((el) => {
-          if (el === null) {
-            return el;
-          }
-          if (isPlainObject(el)) {
-            return plainToInstance(Elem, el) as unknown;
-          }
-          return el;
-        });
-      } else {
-        acc[key] = value;
+      if (!Array.isArray(value)) {
+        const kind =
+          value === null
+            ? "null"
+            : value !== null && typeof value === "object"
+              ? (value as object).constructor?.name ?? "object"
+              : typeof value;
+        throw new TypeError(
+          `plainToInstance: expected array for field "${String(key)}", got ${kind}`,
+        );
       }
+      acc[key] = value.map((el, i) => {
+        if (el === null) {
+          return el;
+        }
+        if (isPlainObject(el)) {
+          return plainToInstance(Elem, el) as unknown;
+        }
+        const kind =
+          el !== null && typeof el === "object"
+            ? (el as object).constructor?.name ?? "object"
+            : typeof el;
+        throw new TypeError(
+          `plainToInstance: expected plain object for "${String(key)}[${i}]", got ${kind}`,
+        );
+      });
       continue;
     }
     acc[key] = value;
   }
   for (const key of Object.keys(plain)) {
+    if (isUnsafeAssignKey(key)) {
+      continue;
+    }
     if (!fieldKeys.has(key) && !Object.prototype.hasOwnProperty.call(acc, key)) {
       acc[key] = plain[key];
     }
