@@ -9,8 +9,8 @@ const schemaCache = new WeakMap<
   z.ZodObject<Record<string, z.ZodTypeAny>, z.UnknownKeysParam, z.ZodTypeAny>
 >();
 
-function redactZodErrorSummary(err: z.ZodError): { issues: ZodIssue[] } {
-  return { issues: redactZodIssuesForResponse(err.issues) };
+function redactZodErrorSummary(err: z.ZodError): z.ZodError {
+  return new z.ZodError(redactZodIssuesForResponse(err.issues));
 }
 
 /** Strips `input` / `received` at every level, including inside `invalid_union` / nested `ZodError` graphs. */

@@ -1,7 +1,11 @@
 import { getFields } from "../metadata.js";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
 }
 
 /**
@@ -15,11 +19,17 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  */
 export function plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unknown): T {
   if (!isPlainObject(data)) {
-    throw new TypeError(
-      `plainToInstance: expected a plain object, got ${data === null ? "null" : Array.isArray(data) ? "array" : typeof data}`
-    );
+    const kind =
+      data === null
+        ? "null"
+        : Array.isArray(data)
+          ? "array"
+          : data !== null && typeof data === "object"
+            ? (data as object).constructor?.name ?? "object"
+            : typeof data;
+    throw new TypeError(`plainToInstance: expected a plain object, got ${kind}`);
   }
-  const acc: Record<string, unknown> = {};
+  const acc: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   const plain = data;
   const fields = getFields(cls);
   const fieldKeys = new Set(fields.map((f) => f.propertyKey));
@@ -38,7 +48,7 @@ export function plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unk
     }
     if (field.nestedClass) {
       const Nested = field.nestedClass();
-      if (typeof value === "object" && !Array.isArray(value)) {
+      if (isPlainObject(value)) {
         acc[key] = plainToInstance(Nested, value) as unknown;
       } else {
         acc[key] = value;
@@ -52,7 +62,7 @@ export function plainToInstance<T>(cls: new (...args: unknown[]) => T, data: unk
           if (el === null) {
             return el;
           }
-          if (typeof el === "object" && !Array.isArray(el)) {
+          if (isPlainObject(el)) {
             return plainToInstance(Elem, el) as unknown;
           }
           return el;

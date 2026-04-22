@@ -87,6 +87,7 @@ describe("plainToInstance", () => {
     expect(() => plainToInstance(User, undefined)).toThrow(TypeError);
     expect(() => plainToInstance(User, [])).toThrow(TypeError);
     expect(() => plainToInstance(User, "x")).toThrow(TypeError);
+    expect(() => plainToInstance(User, new Date())).toThrow(TypeError);
   });
 
   it("copies extra keys not declared on the class (passthrough payloads)", () => {
