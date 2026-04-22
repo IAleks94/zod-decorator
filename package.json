@@ -1,6 +1,6 @@
 {
   "name": "@ialeks/zod-decorator",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "TypeScript decorators for Zod schema validation",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,7 +17,9 @@
   },
   "typesVersions": {
     "*": {
-      "nest": ["./dist/nest/index.d.ts"]
+      "nest": [
+        "./dist/nest/index.d.ts"
+      ]
     }
   },
   "files": [
