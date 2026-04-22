@@ -48,12 +48,12 @@ Add a NestJS-friendly subpath `@ialeks/zod-decorator/nest` that exports `ZodVali
 - [x] Mark completed
 
 ### Task 5: Wire up nest barrel and verify subpath export
-- [ ] Create `src/nest/index.ts` exporting `ZodValidationPipe`, `ZodValidationPipeOptions`, `plainToInstance`
-- [ ] Do NOT add any `export * from "./nest/*"` to `src/index.ts` — keep root entry Nest-free
-- [ ] Add `src/__tests__/subpath-export.spec.ts` that reads `package.json` at runtime (via `node:fs/promises`) and asserts: `exports["."].import === "./dist/index.js"`, `exports["./nest"].import === "./dist/nest/index.js"`, both `types` paths match, and `typesVersions["*"].nest[0] === "./dist/nest/index.d.ts"`
-- [ ] In the same spec, after checking the config, `await import("../../dist/nest/index.js")` (vitest runs tests from built `src/`; the relative path from `src/__tests__/` to `dist/nest/` is stable) and assert `ZodValidationPipe` is a class and `plainToInstance` is a function; prefix the spec with a top-level check that skips gracefully if `dist/nest/index.js` is missing so the spec does not block the first `pnpm test` run before `pnpm build`
-- [ ] Run `pnpm build` then `pnpm test` and confirm the subpath-export spec passes
-- [ ] Mark completed
+- [x] Create `src/nest/index.ts` exporting `ZodValidationPipe`, `ZodValidationPipeOptions`, `plainToInstance`
+- [x] Do NOT add any `export * from "./nest/*"` to `src/index.ts` — keep root entry Nest-free
+- [x] Add `src/__tests__/subpath-export.spec.ts` that reads `package.json` at runtime (via `node:fs/promises`) and asserts: `exports["."].import === "./dist/index.js"`, `exports["./nest"].import === "./dist/nest/index.js"`, both `types` paths match, and `typesVersions["*"].nest[0] === "./dist/nest/index.d.ts"`
+- [x] In the same spec, after checking the config, `await import("../../dist/nest/index.js")` (vitest runs tests from built `src/`; the relative path from `src/__tests__/` to `dist/nest/` is stable) and assert `ZodValidationPipe` is a class and `plainToInstance` is a function; prefix the spec with a top-level check that skips gracefully if `dist/nest/index.js` is missing so the spec does not block the first `pnpm test` run before `pnpm build`
+- [x] Run `pnpm build` then `pnpm test` and confirm the subpath-export spec passes
+- [x] Mark completed
 
 ### Task 6: Documentation updates
 - [ ] Add a `## NestJS integration` section to `README.md` showing installation, `import { ZodValidationPipe } from "@ialeks/zod-decorator/nest"`, `app.useGlobalPipes(new ZodValidationPipe())`, and `@UsePipes(new ZodValidationPipe({ transform: true }))` with a nested DTO example using `@Nested`
