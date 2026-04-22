@@ -176,9 +176,93 @@ const schema = toZodSchema(UserDto); // full Zod object, composable with the res
 
 Both keep validation colocated on the class; zod-decorator outputs a real Zod schema for `parse` / `safeParse` / inference and interoperability with `zod`’s APIs.
 
+| Concern | class-validator stack | zod-decorator |
+|---------|------------------------|---------------|
+| Nest request validation | `ValidationPipe` + `class-validator` (+ often `class-transformer` for `transform: true`) | `ZodValidationPipe` from `@ialeks/zod-decorator/nest`: Zod `safeParse` on the DTO class, optional `plainToInstance` when `transform: true` |
+
 ## NestJS integration
 
-NestJS often uses `class-validator` with `ValidationPipe`. A future direction is a small helper (e.g. `createDto(schemaClass)`) that wires `toZodSchema` into a Nest `Pipe` or custom middleware so DTOs stay decorator-driven while validation runs through Zod. This is not shipped yet; track releases for integration examples.
+Install the usual peers (`zod`, `reflect-metadata`). For the Nest subpath, add **`@nestjs/common`** and **`rxjs`** to your app—they are optional peers of this package and required at runtime when you import `@ialeks/zod-decorator/nest`.
+
+```bash
+pnpm add @ialeks/zod-decorator zod reflect-metadata @nestjs/common rxjs
+```
+
+Wire validation globally or per route. Use `transform: true` when you want body/query DTO properties to be real class instances (including nested DTOs), similar to `ValidationPipe`’s `transform` option.
+
+```ts
+import "reflect-metadata";
+import { NestFactory } from "@nestjs/core";
+import { ZodValidationPipe } from "@ialeks/zod-decorator/nest";
+import { AppModule } from "./app.module.js";
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ZodValidationPipe());
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+```ts
+import { Schema, IsString, Nested } from "@ialeks/zod-decorator";
+import { ZodValidationPipe } from "@ialeks/zod-decorator/nest";
+import { Body, Controller, Post, UsePipes } from "@nestjs/common";
+
+@Schema()
+class AddressDto {
+  @IsString()
+  city!: string;
+}
+
+@Schema()
+class CreateUserDto {
+  @IsString()
+  name!: string;
+
+  @Nested(() => AddressDto)
+  address!: AddressDto;
+}
+
+@Controller("users")
+export class UsersController {
+  @Post()
+  @UsePipes(new ZodValidationPipe({ transform: true }))
+  create(@Body() body: CreateUserDto) {
+    // body.address instanceof AddressDto
+  }
+}
+```
+
+Custom `errorFactory`: reshape `ZodError` before Nest turns it into a response—for example, turn each issue’s `path` (`unknown[]`) into a single dotted string for clients that expect a flat key.
+
+```ts
+import { BadRequestException } from "@nestjs/common";
+import { ZodValidationPipe } from "@ialeks/zod-decorator/nest";
+import type { ZodError } from "zod";
+
+function pathToDotted(path: unknown[]): string {
+  return path.reduce<string>((acc, segment) => {
+    if (typeof segment === "number") return acc ? `${acc}[${segment}]` : `[${segment}]`;
+    const key = String(segment);
+    return acc ? `${acc}.${key}` : key;
+  }, "");
+}
+
+new ZodValidationPipe({
+  errorFactory: (error: ZodError) =>
+    new BadRequestException({
+      statusCode: 400,
+      message: "Validation failed",
+      errors: error.issues.map((issue) => ({
+        ...issue,
+        path: pathToDotted(issue.path),
+      })),
+    }),
+});
+```
+
+**Not a full `class-transformer` replacement:** `@Expose`, `@Exclude`, serialization `groups`, and other class-transformer–centric serialization features are out of scope here. Shape and strip data with Zod (`schema.pick`, `schema.omit`, `.transform`) and this library’s `@Transform` on fields where you need parse-time transforms.
 
 ## Contributing
 

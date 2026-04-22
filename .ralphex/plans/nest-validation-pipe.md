@@ -56,10 +56,10 @@ Add a NestJS-friendly subpath `@ialeks/zod-decorator/nest` that exports `ZodVali
 - [x] Mark completed
 
 ### Task 6: Documentation updates
-- [ ] Add a `## NestJS integration` section to `README.md` showing installation, `import { ZodValidationPipe } from "@ialeks/zod-decorator/nest"`, `app.useGlobalPipes(new ZodValidationPipe())`, and `@UsePipes(new ZodValidationPipe({ transform: true }))` with a nested DTO example using `@Nested`
-- [ ] Add a short recipe in `README.md` showing a custom `errorFactory` that converts `error.issues[i].path: unknown[]` into a dotted string, for users who want that shape
-- [ ] Update the `class-validator vs zod-decorator` section in `README.md` with a row about `ValidationPipe` parity
-- [ ] Explicitly note in `README.md` that `@Expose` / `@Exclude` / `groups` / full `class-transformer` serialization are out of scope; point users to Zod (`schema.pick` / `schema.omit` / `.transform`) and the existing `@Transform` decorator
-- [ ] Update `CLAUDE.md` with a bullet that `src/nest/` compiles to `dist/nest/` and is exposed via the `./nest` subpath export with `@nestjs/common` and `rxjs` as optional peers
-- [ ] Run `pnpm build` and `pnpm test`
-- [ ] Mark completed
+- [x] Add a `## NestJS integration` section to `README.md` showing installation, `import { ZodValidationPipe } from "@ialeks/zod-decorator/nest"`, `app.useGlobalPipes(new ZodValidationPipe())`, and `@UsePipes(new ZodValidationPipe({ transform: true }))` with a nested DTO example using `@Nested`
+- [x] Add a short recipe in `README.md` showing a custom `errorFactory` that converts `error.issues[i].path: unknown[]` into a dotted string, for users who want that shape
+- [x] Update the `class-validator vs zod-decorator` section in `README.md` with a row about `ValidationPipe` parity
+- [x] Explicitly note in `README.md` that `@Expose` / `@Exclude` / `groups` / full `class-transformer` serialization are out of scope; point users to Zod (`schema.pick` / `schema.omit` / `.transform`) and the existing `@Transform` decorator
+- [x] Update `CLAUDE.md` with a bullet that `src/nest/` compiles to `dist/nest/` and is exposed via the `./nest` subpath export with `@nestjs/common` and `rxjs` as optional peers
+- [x] Run `pnpm build` and `pnpm test`
+- [x] Mark completed

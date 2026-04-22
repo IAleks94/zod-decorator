@@ -4,6 +4,7 @@
 
 - Library sources live under `src/`; tests are `*.spec.ts` (Vitest) and are excluded from `tsc` via `tsconfig.json`, so `dist/` ships only library code.
 - Entry point: `src/index.ts` re-exports decorators, `toZodSchema` / `validate` / `validateSafe`, `fromZodSchema`, `VERSION`, and `FieldMeta`.
+- `src/nest/` compiles to `dist/nest/` and is exposed only via the package subpath `@ialeks/zod-decorator/nest` (`exports["./nest"]`); `@nestjs/common` and `rxjs` are optional peer dependencies for consumers of that entry.
 
 ## Runtime requirements
 
